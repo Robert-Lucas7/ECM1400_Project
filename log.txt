@@ -1,0 +1,2 @@
+07/11/2022:
+    Added most of the functionality to Utils.py. Need to check if you can add functions to the modules (e.g.  for validating that a type is valid in a list/ array) and improve documentation (both docstring and inline comments).
