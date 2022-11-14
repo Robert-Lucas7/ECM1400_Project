@@ -113,4 +113,4 @@ def countvalue(values, x):
     return count
 
 
-print(countvalue([1, 2, 3, 4, 5, 4], 4))
+#print(countvalue([1, 2, 3, 4, 5, 4], 4))
