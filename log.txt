@@ -6,3 +6,4 @@
     were more heavily shown in lectures. Should quit be implemented within the quit function or is it fine how it is.
     Added functionality to the reporting_menu().
     Need to do the get_data() function to read the CSV data. Read all the data and return as an embedded dictionary.
+    Find a less clunky way to validate inputs
