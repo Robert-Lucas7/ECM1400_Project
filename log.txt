@@ -1,2 +1,8 @@
 07/11/2022:
-    Added most of the functionality to Utils.py. Need to check if you can add functions to the modules (e.g.  for validating that a type is valid in a list/ array) and improve documentation (both docstring and inline comments).
+    Added most of the functionality to Utils.py. Need to check if you can add functions to the modules (e.g.  for validating that a type is 
+    valid in a list/ array) and improve documentation (both docstring and inline comments).
+14/11/2022:
+    Added functionality to the main_menu() function in main.py. Should it be implemented with a series of if elif else statements as these 
+    were more heavily shown in lectures. Should quit be implemented within the quit function or is it fine how it is.
+    Added functionality to the reporting_menu().
+    Need to do the get_data() function to read the CSV data. Read all the data and return as an embedded dictionary.

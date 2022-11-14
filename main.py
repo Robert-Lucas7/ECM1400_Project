@@ -1,7 +1,10 @@
 # This is a template. 
 # You should modify the functions below to match
 # the signatures determined by the project specification
+from reporting import *
 
+def get_data():
+    pass
 
 def main_menu():
     """
@@ -17,7 +20,7 @@ def main_menu():
     #Validating the input
     invalidInput = True
     while invalidInput:
-        inp = input("Select a valid option").upper()
+        inp = input("Select a valid option\n").upper()
         match inp: #Should an if elif else be used?
             case "R": #Pollution reporting
                 reporting_menu()
@@ -33,7 +36,63 @@ def main_menu():
 
     
 def reporting_menu():
-    """"""
+    """
+    Displays the options for the reporting module
+    """
+    print("DA - Daily average")
+    print("DM - Daily median")
+    print("HA - Hourly average")
+    print("MA - Monthly average")
+    print("PHD - Peak hour date")
+    print("CMD - Count missing data")
+    print("FMD - Fill missing data")
+    print("Q - Quit to the main menu")
+    #Validate the input
+    invalidInput = True
+    while invalidInput:
+        optionInp = input("Select a valid option\n").upper()
+        if optionInp == "Q":
+            invalidInput = False
+        elif optionInp in ["DA","DM","HA", "MA","PHD","CMD", "FMD"]:#it is a valid input
+            #choose which monitoring station and pollutant
+            print("Choose The Monitoring Station:")
+            print("H - Harlington")
+            print("M - Marylebone Road")
+            print("N - N Kensington")
+            monitoringStation = ""
+            invalidMonitoringStation = True
+            while invalidMonitoringStation:
+                monitoringStation = input("Enter the monitoring station\n").upper()
+                if monitoringStation in ["H","M","N"]:
+                    invalidMonitoringStation = False
+            print("Choose the pollutant")
+            print("NO - Nitric Oxide")
+            print("PM10 - PM10 inhalable particulate matter")
+            print("PM25 - PM25 inhalable particulate matter")
+            pollutant = ""
+            invalidPollutant = True
+            while invalidPollutant:  #Could make these validation loops into a function: func validate(printMessage : str, validInputs : list)
+                pollutant = input("Enter the pollutant\n").upper()
+                if pollutant in ["NO", "PM10", "PM25"]:
+                    invalidPollutant = False
+            data = get_data()
+            if optionInp == "DA":
+                daily_average(data, monitoringStation, pollutant)
+            elif optionInp == "DM":
+                daily_median(data, monitoringStation, pollutant)
+            elif optionInp == "HA":
+                hourly_average(data, monitoringStation, pollutant)
+            elif optionInp == "MA":
+                monthly_average(data, monitoringStation, pollutant)
+            elif optionInp == "PHD":
+                peak_hour_date(data, monitoringStation, pollutant)
+            elif optionInp == "CMD":
+                count_missing_data(data, monitoringStation, pollutant)
+            elif optionInp == "FMD":
+                fill_missing_data(data, monitoringStation, pollutant)
+        else:
+            print("Invalid input")
+
     
 
 def monitoring_menu():
