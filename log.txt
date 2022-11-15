@@ -8,3 +8,5 @@
     Need to do the get_data() function to read the CSV data. Read all the data and return as an embedded dictionary.
     Find a less clunky way to validate inputs.
     Create a requirements.txt file for the VENV.
+15/11/22:
+    https://www.tutorialspoint.com/python/time_strptime.htm for the 'format' of the datetime.strptime() function to convert a string to datetime object.
