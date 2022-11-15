@@ -7,24 +7,24 @@ from datetime import datetime
 
 def get_data():
     monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
-    # for station in monitoring_stations:
-    fileName = f"Pollution-London {monitoring_stations[0]}.csv"
     data_dict = {}
     for station in monitoring_stations:
-        with open(f"./data/{fileName}", 'r') as f:
-            pollution_dict = {}
-            line = f.readline().rstrip()
-            while line != '':
-                if line != "date,time,no,pm10,pm25":
-                    sections = line.split(',')
-                    date_and_time = datetime.strptime(
-                        f"{sections[0]} {sections[1]}", '%Y-%m-%d %H:%M:%S')
-                    pollution_dict[date_and_time] = {
-                        "no": sections[3],
-                        "pm10": sections[4],
-                        "pm25": sections[5]
+        print(station)
+        fileName = f"Pollution-London {monitoring_stations[0]}.csv"
+        lines = open(f"./data/{fileName}", 'r').readlines()
+        station_dict = {}
+        for line in lines:
+            if line != "date,time,no,pm10,pm25\n":
+                sections = line.rstrip().split(',')
+                
+                #date_and_time = datetime.strptime(
+                 #       f"{sections[0]} {sections[1]}", '%Y-%m-%d %H:%M:%S')
+                station_dict[f"{sections[0]} {sections[1]}"] = {
+                        "no": sections[2],
+                        "pm10": sections[3],
+                        "pm25": sections[4]
                     }
-        data_dict[station] = pollution_dict
+        data_dict[station] = station_dict
     return data_dict
 
 
@@ -141,4 +141,6 @@ def quit():
 
 if __name__ == '__main__':
     # main_menu()
-    print(get_data())
+    d = get_data()
+    print("END")
+    print(d["N Kensington"]["2021-01-01 13:00:00"])
