@@ -9,22 +9,22 @@ def get_data():
     monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
     data_dict = {}
     for station in monitoring_stations:
-        print(station)
+        # print(station)
         fileName = f"Pollution-London {monitoring_stations[0]}.csv"
         lines = open(f"./data/{fileName}", 'r').readlines()
-        station_dict = {}
+        station_list = []
         for line in lines:
             if line != "date,time,no,pm10,pm25\n":
                 sections = line.rstrip().split(',')
-                
-                #date_and_time = datetime.strptime(
-                 #       f"{sections[0]} {sections[1]}", '%Y-%m-%d %H:%M:%S')
-                station_dict[f"{sections[0]} {sections[1]}"] = {
-                        "no": sections[2],
-                        "pm10": sections[3],
-                        "pm25": sections[4]
-                    }
-        data_dict[station] = station_dict
+
+                # date_and_time = datetime.strptime(
+                #       f"{sections[0]} {sections[1]}", '%Y-%m-%d %H:%M:%S')
+                station_list.append((f"{sections[0]} {sections[1]}", {
+                                    "no": sections[2],
+                                    "pm10": sections[3],
+                                    "pm25": sections[4]
+                                    }))
+        data_dict[station] = station_list
     return data_dict
 
 
@@ -88,6 +88,14 @@ def reporting_menu():
                     "Enter the monitoring station\n").upper()
                 if monitoringStation in ["H", "M", "N"]:
                     invalidMonitoringStation = False
+
+            if monitoringStation == "H":
+                monitoringStation = "Harlington"
+            elif monitoringStation == "M":
+                monitoringStation = "Marylebone Road"
+            else:
+                monitoringStation = "N Kensington"
+
             print("Choose the pollutant")
             print("NO - Nitric Oxide")
             print("PM10 - PM10 inhalable particulate matter")
@@ -96,8 +104,8 @@ def reporting_menu():
             invalidPollutant = True
             # Could make these validation loops into a function: func validate(printMessage : str, validInputs : list)
             while invalidPollutant:
-                pollutant = input("Enter the pollutant\n").upper()
-                if pollutant in ["NO", "PM10", "PM25"]:
+                pollutant = input("Enter the pollutant\n").lower()
+                if pollutant in ["no", "pm10", "pm25"]:
                     invalidPollutant = False
             data = get_data()
             if optionInp == "DA":
@@ -140,7 +148,8 @@ def quit():
 
 
 if __name__ == '__main__':
-    # main_menu()
-    d = get_data()
-    print("END")
-    print(d["N Kensington"]["2021-01-01 13:00:00"])
+    main_menu()
+    #d = get_data()
+    # print("END")
+    #print(d["N Kensington"])
+    #print(len(d["N Kensington"]))
