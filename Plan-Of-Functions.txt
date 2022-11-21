@@ -1,0 +1,61 @@
+Plan
+
+Format of read data
+
+{
+    "station" : [
+        (date_and_time, {
+            "no" : no_value,
+            "pm10" : pm10_value,
+            "pm25" : pm25_value
+        })
+    ]
+}
+
+Reporting Module
+
+daily_average(data, monitoring_station : str, pollutant : str) -> list (365 values)
+
+Pseudocode:
+Iterate over the list associated with the station.
+Mean_daily_values = []
+
+for i in 365:
+    normal_values = []
+    for j in 24:
+        if value is a float  #use isinstance() to avoid an error for 'No Data'
+            Add values to a list.  #index = i * 24 + j
+    Call meanvalue(list)
+    Add the return value to a list of mean_daily_values
+return mean_daily_values
+
+daily_median(data, monitoring_station : str, pollutant : str) -> list  (using an insertion sort)
+
+Pseudocode:
+Iterate over the list associated with the station.
+median_daily_values = []
+for i in 365:
+    sorted_normal_values = []
+    for j in 24:
+        if value is a float:
+            if j == 0:
+                add value to list
+            else:
+                for index in range(len(sorted_normal_values))):
+                    if value <= sorted_normal_values[index]:
+                        sorted_normal_values.insert(index, value)
+                        break
+    median_daily_values.append(median_value(sorted_normal_values))
+return median_daily_values
+
+
+
+hourly_average(data, monitoring_station : str, pollutant : str) -> list
+
+monthly_average(data, monitoring_station : str, pollutant : str) -> list
+
+peak_hour_date(data, monitoring_station : str, pollutant : str) -> string (hour date)
+
+count_missing_data(data, monitoring_station : str, pollutant : str) -> int
+
+fill_missing_data(data, monitoring_station : str, pollutant : str) -> copy of data
