@@ -154,7 +154,7 @@ if __name__ == '__main__':
     print(d)
     print(len(d["Harlington"]))'''
 
-    print(daily_average(get_data(), "Harlington", "pm10"))
+    print(daily_median(get_data(), "Harlington", "pm10"))
     # print("END")
     #print(d["N Kensington"])
     #print(len(d["N Kensington"]))

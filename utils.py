@@ -144,6 +144,6 @@ def insertion_sort(values : list) -> list:
             else:
                 found_location = True
     return values
-print(find_median([1,3,2,5,4,4]))
+#print(find_median([1,3,2,5,4,4]))# 1,2,3,4,4,5
 #print(insertion_sort([1,4,7,9,4,2,3,7,8,5,6,0]))
 #print(countvalue([1, 2, 3, 4, 5, 4], 4))
