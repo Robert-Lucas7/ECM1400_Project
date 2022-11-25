@@ -3,6 +3,9 @@
 # the signatures determined by the project specification
 
 
+import numpy
+
+
 def sumvalues(values: list):
     """
     This function sums the values in a list/ array. If a non-numerical value is in the list/array then an exception will be raised.\n
@@ -13,7 +16,7 @@ def sumvalues(values: list):
     total = 0
     for item in values:
 
-        if type(item) in [int, float]:
+        if type(item) in [int, float, numpy.float64]:
             total += item
         else:
             raise TypeError(
@@ -69,7 +72,8 @@ def minvalue(values):
 
         for i in range(0, length):
             # Validate element data type
-            if type(values[i]) in [int, float]:
+            print(type(values[i]))
+            if type(values[i]) in [int, float, numpy.float64]:
                 if i == 0:
                     minValIndex = 0  # As this will be the highest value at the start
                     minVal = values[0]
@@ -112,30 +116,35 @@ def countvalue(values, x):
             count += 1
     return count
 
-def find_median(values : list):
+
+def find_median(values: list):
     '''
     Find the median value of a list of values.
     '''
     sorted_values = insertion_sort(values)
-    if len(sorted_values) % 2 == 0: #even number of elements in the list. e.g. [1,2,3,4,5,6]
-        right_most_middle_element = int(len(sorted_values) /2)
+    # even number of elements in the list. e.g. [1,2,3,4,5,6]
+    if len(sorted_values) % 2 == 0:
+        right_most_middle_element = int(len(sorted_values) / 2)
         return (sorted_values[right_most_middle_element] + sorted_values[right_most_middle_element - 1]) / 2
-    else: #odd number of elements in the list. e.g. [1,2,3,4,5]
-        return sorted_values[int((len(sorted_values) - 1)/2)] #the index will always be an integer as 1 less of an odd number is even.
+    else:  # odd number of elements in the list. e.g. [1,2,3,4,5]
+        # the index will always be an integer as 1 less of an odd number is even.
+        return sorted_values[int((len(sorted_values) - 1)/2)]
+
+    # then going from either end go to the centre (could use recursion - base case len(list) == 1 or len(list) == 2)
 
 
-    #then going from either end go to the centre (could use recursion - base case len(list) == 1 or len(list) == 2)
-def insertion_sort(values : list) -> list:
+def insertion_sort(values: list) -> list:
     '''
     Returns a sorted list of values by using the insertion sort algorithm.\n
     Parameters
     ----------
     values - a list of numeric values (int or float)
     '''
-    for i in range(1,len(values)): 
+    for i in range(1, len(values)):
         found_location = False
         count = 0
-        while (not found_location and (i - count) != 0): # i - count != 0 is to test if the start of the list has been reached.
+        # i - count != 0 is to test if the start of the list has been reached.
+        while (not found_location and (i - count) != 0):
             if values[i - count] < values[i - count - 1]:
                 temp = values[i - count - 1]
                 values[i - count - 1] = values[i - count]
@@ -144,6 +153,6 @@ def insertion_sort(values : list) -> list:
             else:
                 found_location = True
     return values
-#print(find_median([1,3,2,5,4,4]))# 1,2,3,4,4,5
-#print(insertion_sort([1,4,7,9,4,2,3,7,8,5,6,0]))
+# print(find_median([1,3,2,5,4,4]))# 1,2,3,4,4,5
+# print(insertion_sort([1,4,7,9,4,2,3,7,8,5,6,0]))
 #print(countvalue([1, 2, 3, 4, 5, 4], 4))

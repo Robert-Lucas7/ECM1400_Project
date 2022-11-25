@@ -5,6 +5,8 @@ from reporting import *
 from datetime import datetime
 import numpy as np
 import json
+
+
 def get_data():
     monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
     data_dict = {}
@@ -12,18 +14,19 @@ def get_data():
         # print(station)
         fileName = f"Pollution-London {monitoring_stations[0]}.csv"
         lines = open(f"./data/{fileName}", 'r').readlines()
-        station_list = np.empty(len(lines) - 1, dtype=object) #intialises an uninitialised array of values.
+        # intialises an uninitialised array of values.
+        station_list = np.empty(len(lines) - 1, dtype=object)
         for index, line in enumerate(lines):
-            if index != 0: #if it isn't the first line where the column headers are specified.
+            if index != 0:  # if it isn't the first line where the column headers are specified.
                 sections = line.rstrip().split(',')
 
                 # date_and_time = datetime.strptime(
                 #       f"{sections[0]} {sections[1]}", '%Y-%m-%d %H:%M:%S')
-                station_list[index - 1] = (f"{sections[0]} {sections[1]}", { #index - 1 as the first line is not actual data so each line is 1 index behind
-                                    "no": sections[2],
-                                    "pm10": sections[3],
-                                    "pm25": sections[4]
-                                    })
+                station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
+                    "no": sections[2],
+                    "pm10": sections[3],
+                    "pm25": sections[4]
+                })
         data_dict[station] = station_list
 
     return data_dict
@@ -149,12 +152,12 @@ def quit():
 
 
 if __name__ == '__main__':
-    #main_menu()
+    # main_menu()
     '''d = get_data()
     print(d)
     print(len(d["Harlington"]))'''
-
-    print(daily_median(get_data(), "Harlington", "pm10"))
+    print(hourly_average(get_data(), "Harlington", "pm10"))
+    #print(daily_median(get_data(), "Harlington", "pm10"))
     # print("END")
     #print(d["N Kensington"])
     #print(len(d["N Kensington"]))
