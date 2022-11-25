@@ -150,9 +150,11 @@ def quit():
 
 if __name__ == '__main__':
     #main_menu()
-    d = get_data()
+    '''d = get_data()
     print(d)
-    print(len(d["Harlington"]))
+    print(len(d["Harlington"]))'''
+
+    print(daily_average(get_data(), "Harlington", "pm10"))
     # print("END")
     #print(d["N Kensington"])
     #print(len(d["N Kensington"]))

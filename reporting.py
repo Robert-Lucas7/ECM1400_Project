@@ -3,7 +3,7 @@
 # the signatures determined by the project specification
 from utils import *
 
-
+import numpy as np
 def daily_average(data, monitoring_station: str, pollutant: str) -> list:
     """
     This function returns a list/array with the daily averages for a particular pollutant and monitoring station.
@@ -12,26 +12,20 @@ def daily_average(data, monitoring_station: str, pollutant: str) -> list:
     print(monitoring_station, pollutant)
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            dates_and_data_for_monitoring_station = data[monitoring_station]
-            hourly_values = []
+            data_for_monitoring_station = data[monitoring_station]
+            
             average_daily_values = []
-            prev_item = None
-            for i in range(len(dates_and_data_for_monitoring_station)):
-                current_item = dates_and_data_for_monitoring_station[i]
-                if prev_item == None or (current_item[:9] == prev_item[:9]):
-                    hourly_values.append(current_item[1][pollutant])
-
-                    if i == len(dates_and_data_for_monitoring_station) - 1:
-                        mean_value = meannvalue(hourly_values)
-                        hourly_values = []
-                        average_daily_values.append(mean_value)
-
-                else:
-                    mean_value = meannvalue(hourly_values)
-                    hourly_values = []
-                    average_daily_values.append(mean_value)
-
-                prev_item = current_item
+            
+            for i in range(365):
+                hourly_values = []
+                for j in range(24):
+                    value = data_for_monitoring_station[i * 24 + j][1][pollutant]
+                    print(f"{value} : {type(value)} : {value.isdigit()}")
+                    if value != "No data": #if there is an appropriate value and not "No Data". (Find better way to see if string can be cast to float)
+                        hourly_values.append(float(value))
+                mean_value_for_day = meannvalue(hourly_values)
+                average_daily_values.append(mean_value_for_day)
+            return average_daily_values
 
         else:
             raise Exception(
@@ -40,7 +34,7 @@ def daily_average(data, monitoring_station: str, pollutant: str) -> list:
         print(str(e))
 
         # Your code goes here
-#daily_average("", "Harlington", "pm10")
+
 
 
 def daily_median(data, monitoring_station, pollutant):
