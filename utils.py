@@ -118,10 +118,10 @@ def find_median(values : list):
     '''
     sorted_values = insertion_sort(values)
     if len(sorted_values) % 2 == 0: #even number of elements in the list. e.g. [1,2,3,4,5,6]
-        right_most_middle_element = len(sorted_values) /2
+        right_most_middle_element = int(len(sorted_values) /2)
         return (sorted_values[right_most_middle_element] + sorted_values[right_most_middle_element - 1]) / 2
     else: #odd number of elements in the list. e.g. [1,2,3,4,5]
-        return sorted_values[(len(sorted_values) - 1)/2]
+        return sorted_values[int((len(sorted_values) - 1)/2)] #the index will always be an integer as 1 less of an odd number is even.
 
 
     #then going from either end go to the centre (could use recursion - base case len(list) == 1 or len(list) == 2)
@@ -144,5 +144,6 @@ def insertion_sort(values : list) -> list:
             else:
                 found_location = True
     return values
+print(find_median([1,3,2,5,4,4]))
 #print(insertion_sort([1,4,7,9,4,2,3,7,8,5,6,0]))
 #print(countvalue([1, 2, 3, 4, 5, 4], 4))

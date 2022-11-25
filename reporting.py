@@ -47,7 +47,7 @@ def daily_median(data, monitoring_station : str, pollutant : str) -> list:
     Returns a list of the daily median values of the pollutant at a specific monitoring station.
     """
     list_of_daily_medians = get_daily_averages(data, find_median, monitoring_station, pollutant)
-
+    
 
 
 def hourly_average(data, monitoring_station, pollutant):
