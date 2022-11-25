@@ -3,7 +3,7 @@ Plan
 Format of read data
 
 {
-    "station" : [
+    "station" : [  #numpy array
         (date_and_time, {
             "no" : no_value,
             "pm10" : pm10_value,

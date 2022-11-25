@@ -40,7 +40,7 @@ def daily_average(data, monitoring_station: str, pollutant: str) -> list:
         print(str(e))
 
         # Your code goes here
-daily_average("", "Harlington", "pm10")
+#daily_average("", "Harlington", "pm10")
 
 
 def daily_median(data, monitoring_station, pollutant):
