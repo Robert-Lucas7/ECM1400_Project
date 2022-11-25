@@ -10,3 +10,5 @@
     Create a requirements.txt file for the VENV.
 15/11/22:
     https://www.tutorialspoint.com/python/time_strptime.htm for the 'format' of the datetime.strptime() function to convert a string to datetime object.
+25/11/22:
+    Should daily_average return the values to a certain degree of accuracy.
