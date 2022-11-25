@@ -113,8 +113,17 @@ def countvalue(values, x):
     return count
 
 def find_median(values : list):
-    pass
-    #first sort list
+    '''
+    Find the median value of a list of values.
+    '''
+    sorted_values = insertion_sort(values)
+    if len(sorted_values) % 2 == 0: #even number of elements in the list. e.g. [1,2,3,4,5,6]
+        right_most_middle_element = len(sorted_values) /2
+        return (sorted_values[right_most_middle_element] + sorted_values[right_most_middle_element - 1]) / 2
+    else: #odd number of elements in the list. e.g. [1,2,3,4,5]
+        return sorted_values[(len(sorted_values) - 1)/2]
+
+
     #then going from either end go to the centre (could use recursion - base case len(list) == 1 or len(list) == 2)
 def insertion_sort(values : list) -> list:
     '''
