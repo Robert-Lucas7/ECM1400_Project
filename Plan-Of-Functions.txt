@@ -48,6 +48,19 @@ for i in 365:
     median_daily_values.append(median_value(sorted_normal_values))
 return median_daily_values
 
+Insertion_sort()
+for i in range(values):
+    bool found_location = false
+    int index_to_compare = i + 1
+    while (not found_location and index_to_compare != len(values):
+        if values[i] > values[index_to_compare]:
+            temp = values[index_to_compare]
+            values[index_to_compare] = values[i]
+            values[i] = temp
+            index_to_compare += 1
+        else:
+            found_location = true
+    return values;
 
 
 hourly_average(data, monitoring_station : str, pollutant : str) -> list

@@ -112,5 +112,28 @@ def countvalue(values, x):
             count += 1
     return count
 
-
+def find_median(values : list):
+    pass
+    #first sort list
+    #then going from either end go to the centre (could use recursion - base case len(list) == 1 or len(list) == 2)
+def insertion_sort(values : list) -> list:
+    '''
+    Returns a sorted list of values by using the insertion sort algorithm.\n
+    Parameters
+    ----------
+    values - a list of numeric values (int or float)
+    '''
+    for i in range(1,len(values)): 
+        found_location = False
+        count = 0
+        while (not found_location and (i - count) != 0): # i - count != 0 is to test if the start of the list has been reached.
+            if values[i - count] < values[i - count - 1]:
+                temp = values[i - count - 1]
+                values[i - count - 1] = values[i - count]
+                values[i - count] = temp
+                count += 1
+            else:
+                found_location = True
+    return values
+#print(insertion_sort([1,4,7,9,4,2,3,7,8,5,6,0]))
 #print(countvalue([1, 2, 3, 4, 5, 4], 4))
