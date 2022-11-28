@@ -67,6 +67,18 @@ hourly_average(data, monitoring_station : str, pollutant : str) -> list
 
 monthly_average(data, monitoring_station : str, pollutant : str) -> list
 
+
+monthly_average_data = array of length 12
+index = 0
+for i in range 0 to 12:
+    same_month = true
+    current_month = date_and_time[::::]
+    if 
+    while same_month:
+        pass
+
+
+
 peak_hour_date(data, monitoring_station : str, pollutant : str) -> string (hour date)
 
 count_missing_data(data, monitoring_station : str, pollutant : str) -> int

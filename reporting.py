@@ -81,9 +81,30 @@ def hourly_average(data, monitoring_station, pollutant):
 
 
 def monthly_average(data, monitoring_station, pollutant):
-    """Your documentation goes here"""
+    """
+    Returns an array of the monthly averages for a particular pollutant and monitoring station.\n
+    Parameters
+    ----------
+    data - 
+    monitoring station - string
+    pollutant - string
+    """
 
-    # Your code goes here
+    try:
+        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+            monthly_average_data = np.empty(12)
+            station_data= data[monitoring_station]
+            for i in range(12):
+                same_month = True
+                while same_month:
+                    pass
+
+
+        else:
+            raise Exception(
+                "Invalid arguments passed (either as monitoring station or pollutant")
+    except Exception as e:
+        print(str(e))
 
 
 def peak_hour_date(data, date, monitoring_station, pollutant):
