@@ -153,10 +153,8 @@ def quit():
 
 if __name__ == '__main__':
     # main_menu()
-    '''d = get_data()
-    print(d)
-    print(len(d["Harlington"]))'''
-    print(hourly_average(get_data(), "Harlington", "pm10"))
+    data = get_data()
+    print(monthly_average(data, "Harlington", "pm10"))
     #print(daily_median(get_data(), "Harlington", "pm10"))
     # print("END")
     #print(d["N Kensington"])

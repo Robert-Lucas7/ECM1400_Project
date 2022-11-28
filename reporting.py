@@ -94,10 +94,20 @@ def monthly_average(data, monitoring_station, pollutant):
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             monthly_average_data = np.empty(12)
             station_data= data[monitoring_station]
+            index = 0
             for i in range(12):
+                normal_monthly_data = []
                 same_month = True
                 while same_month:
-                    pass
+                    current_month = station_data[index][0][5:7]
+                    if len(station_data) == index + 1 or station_data[index + 1][0][5:7] != current_month:
+                        same_month = False
+                    value = station_data[index][1][pollutant]
+                    if value != "No data":
+                        normal_monthly_data.append(float(value))
+                    index += 1
+                monthly_average_data[i] = meannvalue(normal_monthly_data)
+            return monthly_average_data
 
 
         else:

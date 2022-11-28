@@ -69,13 +69,21 @@ monthly_average(data, monitoring_station : str, pollutant : str) -> list
 
 
 monthly_average_data = array of length 12
+
 index = 0
 for i in range 0 to 12:
+    normal_monthly_data = list (as month length is not a fixed size)
     same_month = true
-    current_month = date_and_time[::::]
-    if 
+    current_month = empty string
     while same_month:
-        pass
+        current_month = data[::::]
+        if len(data) != index + 1 && data[index + 1] != current_month:
+            same_month = false
+        normal_monthly_data.append(value)
+        index++
+    monthly_average_data.append(meanvalue(normal_monthly_data))
+
+
 
 
 
