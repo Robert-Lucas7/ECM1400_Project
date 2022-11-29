@@ -146,9 +146,22 @@ def peak_hour_date(data, date, monitoring_station, pollutant):
 
 
 def count_missing_data(data,  monitoring_station, pollutant):
-    """Your documentation goes here"""
+    """
+    Returns the number of missing data entries for a given monitoring station and pollutant.\n
+    Parameters
+    ----------
+    data
+    monitoring_station
+    pollutant
+    """
+    station_data = data[monitoring_station]
+    num_missing_data = 0
+    for i in range(len(station_data)):
+        value = station_data[i][1][pollutant]
+        if value == "No data":
+            num_missing_data += 1
+    return num_missing_data
 
-    # Your code goes here
 
 
 def fill_missing_data(data, new_value,  monitoring_station, pollutant):

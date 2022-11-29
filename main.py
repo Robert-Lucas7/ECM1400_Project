@@ -154,7 +154,8 @@ def quit():
 if __name__ == '__main__':
     # main_menu()
     data = get_data()
-    print(peak_hour_date(data, "2021-01-09", "Harlington", "pm25"))
+    print(count_missing_data(data, "Harlington", "pm25"))
+    #print(peak_hour_date(data, "2021-01-09", "Harlington", "pm25"))
     #print(monthly_average(data, "Harlington", "pm10"))
     #print(daily_median(get_data(), "Harlington", "pm10"))
     # print("END")
