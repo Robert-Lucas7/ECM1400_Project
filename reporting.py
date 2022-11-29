@@ -163,8 +163,34 @@ def count_missing_data(data,  monitoring_station, pollutant):
     return num_missing_data
 
 
-
+import copy
 def fill_missing_data(data, new_value,  monitoring_station, pollutant):
-    """Your documentation goes here"""
-
-    # Your code goes here
+    """
+    Returns a copy of the data with "No data" values are replaced by the parameter new_value.\n
+    Parameters
+    ----------
+    data
+    new_value
+    monitoring_station
+    pollutant
+    """
+    '''
+    data - 
+    {
+        "station": [
+            (time, value),
+            ...
+        ]
+    }
+    
+    '''
+    data_copy = copy.deepcopy(data) #NOT enough as the nested data structures need to be copied as well - shallow copy
+    
+    station_data = data_copy[monitoring_station] #array is separated from the data passed as a parameter (NOT passed by reference).
+    for i in range(len(station_data)):
+        value = station_data[i][1][pollutant]
+        if value == "No data":
+            pollutant_dict = station_data[i][1]
+            pollutant_dict[pollutant] = new_value
+            station_data[i] = (station_data[i][0], pollutant_dict)
+    return data_copy
