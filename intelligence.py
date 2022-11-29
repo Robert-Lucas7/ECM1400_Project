@@ -2,7 +2,7 @@
 # You should modify the functions below to match
 # the signatures determined by the project specification
 
-def find_red_pixels(*args,**kwargs):
+def find_red_pixels(map_filename, upper_threshold = 100, lower_threshold = 50):
     """Your documentation goes here"""
     # Your code goes here
 
