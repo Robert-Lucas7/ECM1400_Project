@@ -89,6 +89,28 @@ for i in range 0 to 12:
 
 peak_hour_date(data, monitoring_station : str, pollutant : str) -> string (hour date)
 
+**For a givendate (e.g., 2021-01-01) returns the hour of the day with the highest pollution level and its corresponding value (e.g., (12:00, 14.8))
+
+found_date = false
+starting_index = 0    
+while not found_date:
+    if data[index][::] != date or len(data) -1 == starting_index:
+        starting_index += 1
+    else:
+        found_date = true
+if starting_index >= len(data)-1:
+    raise exception
+time_and_max_value = "", -1 
+for i in range(0,24):
+    value = data[starting_index + i]
+    if value < time_and_max_value[1]:
+        time_and_max_value[0] = time
+        time_and_max_value[1] = value
+return time_and_max_value
+        
+    
+
+
 count_missing_data(data, monitoring_station : str, pollutant : str) -> int
 
 fill_missing_data(data, monitoring_station : str, pollutant : str) -> copy of data

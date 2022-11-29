@@ -118,9 +118,31 @@ def monthly_average(data, monitoring_station, pollutant):
 
 
 def peak_hour_date(data, date, monitoring_station, pollutant):
-    """Your documentation goes here"""
-
-    # Your code goes here
+    """
+    Return a tuple of the time and value that the max pollution occurs (for a particular pollutant)
+    """
+    found_date = False
+    starting_index = 0
+    station_data = data[monitoring_station]
+    while not found_date:
+        if station_data[starting_index][0][:10] != date :
+            starting_index += 1
+            print(starting_index, )
+            if starting_index >= len(station_data) -1:
+                raise Exception("Date is not found in the CSV file.")
+        else:
+            found_date = True
+    #time_and_max_value = ["", -1]
+    max_time = ""
+    max_value = -1
+    for i in range(24):
+        if station_data[starting_index + i][1][pollutant] != "No data":
+            value = float(station_data[starting_index + i][1][pollutant])
+            if value > max_value:
+                max_time = station_data[starting_index + i][0][11:19]
+                max_value = value
+    return max_time, max_value
+    
 
 
 def count_missing_data(data,  monitoring_station, pollutant):
