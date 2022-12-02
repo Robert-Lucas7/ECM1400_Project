@@ -12,7 +12,7 @@ def get_data():
     data_dict = {}
     for station in monitoring_stations:
         # print(station)
-        fileName = f"Pollution-London {monitoring_stations[0]}.csv"
+        fileName = f"Pollution-London {station}.csv"
         lines = open(f"./data/{fileName}", 'r').readlines()
         # intialises an uninitialised array of values.
         station_list = np.empty(len(lines) - 1, dtype=object)
@@ -158,4 +158,6 @@ if __name__ == '__main__':
     
     print(count_missing_data(data, "Harlington", "pm25"))
     print(count_missing_data(new_data, "Harlington", "pm25"))
-    
+    for key, value in data.items():
+        if key in new_data.keys():
+            print(data[key].all() == new_data[key].all())

@@ -184,7 +184,13 @@ def fill_missing_data(data, new_value,  monitoring_station, pollutant):
     }
     
     '''
-    data_copy = copy.deepcopy(data) #NOT enough as the nested data structures need to be copied as well - shallow copy
+    #data_copy = copy.deepcopy(data)
+    data_copy = {}
+    for key, data_arr in data.items():
+        data_copy[key] = data_arr.copy()
+        #print(key, data_arr)
+    #data_copy = data_copy.copy()
+    #data_copy = data_copy.copy()
     
     station_data = data_copy[monitoring_station] #array is separated from the data passed as a parameter (NOT passed by reference).
     for i in range(len(station_data)):
