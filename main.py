@@ -4,31 +4,6 @@
 from reporting import *
 import numpy as np
 
-
-
-def get_data():
-    monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
-    data_dict = {}
-    for station in monitoring_stations:
-        
-        fileName = f"Pollution-London {station}.csv"
-        lines = open(f"./data/{fileName}", 'r').readlines()
-        # intialises an uninitialised array of values.
-        station_list = np.empty(len(lines) - 1, dtype=object)
-        for index, line in enumerate(lines):# should use start = 
-            if index != 0:  # if it isn't the first line where the column headers are specified.
-                sections = line.rstrip().split(',')
-
-                station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
-                    "no": sections[2],
-                    "pm10": sections[3],
-                    "pm25": sections[4]
-                })
-        data_dict[station] = station_list
-
-    return data_dict
-
-
 def main_menu():
     """
     Prints the options of the different modules and takes an input to choose which module is to be accessed.
