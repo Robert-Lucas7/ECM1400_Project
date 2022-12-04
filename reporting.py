@@ -4,7 +4,27 @@
 from utils import *
 import numpy as np
 
+def get_data():
+    monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
+    data_dict = {}
+    for station in monitoring_stations:
+        
+        fileName = f"Pollution-London {station}.csv"
+        lines = open(f"./data/{fileName}", 'r').readlines()
+        # intialises an uninitialised array of values.
+        station_list = np.empty(len(lines) - 1, dtype=object)
+        for index, line in enumerate(lines):# should use start = 
+            if index != 0:  # if it isn't the first line where the column headers are specified.
+                sections = line.rstrip().split(',')
 
+                station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
+                    "no": sections[2],
+                    "pm10": sections[3],
+                    "pm25": sections[4]
+                })
+        data_dict[station] = station_list
+
+    return data_dict
 # Higher order function that takes in the average function specified in utils.py
 def get_daily_averages(data, average_func, monitoring_station: str, pollutant: str) -> list:
     '''
@@ -174,29 +194,21 @@ def fill_missing_data(data, new_value,  monitoring_station, pollutant):
     monitoring_station
     pollutant
     """
-    '''
-    data - 
-    {
-        "station": [
-            (time, value),
-            ...
-        ]
-    }
     
-    '''
     #data_copy = copy.deepcopy(data)
     data_copy = {}
-    for key, data_arr in data.items():
-        data_copy[key] = data_arr.copy()
-        #print(key, data_arr)
-    #data_copy = data_copy.copy()
-    #data_copy = data_copy.copy()
-    
+    for station, data_arr in data.items():
+        data_copy[station] = data_arr.copy()
+    print(f"data: {count_missing_data(data, 'Harlington', 'pm10')} data_copy: {count_missing_data(data_copy, 'Harlington', 'pm10')}")
     station_data = data_copy[monitoring_station] #array is separated from the data passed as a parameter (NOT passed by reference).
     for i in range(len(station_data)):
         value = station_data[i][1][pollutant]
         if value == "No data":
-            pollutant_dict = station_data[i][1]
+            station_data[i][1][pollutant] = new_value
+            '''pollutant_dict = station_data[i][1]
             pollutant_dict[pollutant] = new_value
-            station_data[i] = (station_data[i][0], pollutant_dict)
+            station_data[i] = (station_data[i][0], pollutant_dict)'''
+    #data_copy[monitoring_station] = station_data
+    print(f"data: {count_missing_data(data, 'Harlington', 'pm10')} data_copy: {count_missing_data(data_copy, 'Harlington', 'pm10')}")
+    
     return data_copy

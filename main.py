@@ -2,26 +2,23 @@
 # You should modify the functions below to match
 # the signatures determined by the project specification
 from reporting import *
-from datetime import datetime
 import numpy as np
-import json
+
 
 
 def get_data():
     monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
     data_dict = {}
     for station in monitoring_stations:
-        # print(station)
+        
         fileName = f"Pollution-London {station}.csv"
         lines = open(f"./data/{fileName}", 'r').readlines()
         # intialises an uninitialised array of values.
         station_list = np.empty(len(lines) - 1, dtype=object)
-        for index, line in enumerate(lines):
+        for index, line in enumerate(lines):# should use start = 
             if index != 0:  # if it isn't the first line where the column headers are specified.
                 sections = line.rstrip().split(',')
 
-                # date_and_time = datetime.strptime(
-                #       f"{sections[0]} {sections[1]}", '%Y-%m-%d %H:%M:%S')
                 station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
                     "no": sections[2],
                     "pm10": sections[3],
@@ -154,10 +151,14 @@ def quit():
 if __name__ == '__main__':
     # main_menu()
     data = get_data()
-    new_data = fill_missing_data(data, "5", "Harlington", "pm25")
-    
-    print(count_missing_data(data, "Harlington", "pm25"))
+    new_data = fill_missing_data(data, "5", "Harlington", "pm10")
+    print(count_missing_data(data, "Harlington", "pm10"))
+    print(count_missing_data(new_data, "Harlington", "pm10"))
+    #print(count_missing_data(data, "Harlington", "pm25"))
+    '''print(count_missing_data(data, "Harlington", "pm25"))
     print(count_missing_data(new_data, "Harlington", "pm25"))
     for key, value in data.items():
+        print(data[key].all() == new_data[key].all())'''
+    '''for key, value in data.items():
         if key in new_data.keys():
-            print(data[key].all() == new_data[key].all())
+            print(f"{id(data[key])} : {id(new_data[key])} Equivalent: {id(data[key]) == id(new_data[key])}")'''
