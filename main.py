@@ -129,11 +129,4 @@ if __name__ == '__main__':
     new_data = fill_missing_data(data, "5", "Harlington", "pm10")
     print(count_missing_data(data, "Harlington", "pm10"))
     print(count_missing_data(new_data, "Harlington", "pm10"))
-    #print(count_missing_data(data, "Harlington", "pm25"))
-    '''print(count_missing_data(data, "Harlington", "pm25"))
-    print(count_missing_data(new_data, "Harlington", "pm25"))
-    for key, value in data.items():
-        print(data[key].all() == new_data[key].all())'''
-    '''for key, value in data.items():
-        if key in new_data.keys():
-            print(f"{id(data[key])} : {id(new_data[key])} Equivalent: {id(data[key]) == id(new_data[key])}")'''
+    
