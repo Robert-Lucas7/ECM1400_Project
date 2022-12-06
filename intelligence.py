@@ -66,8 +66,6 @@ def find_red_pixels(map_filename, upper_threshold = 100, lower_threshold = 50):
                 red_pixels[row, col] = 0 #0 is white for matplotlib 'greys' colourmap
             else:
                 red_pixels[row, col] = 1
-    print(red_pixels)
-    print(red_pixels.shape)
     mat_plot.imsave('./data/map-red-pixels.jpg', red_pixels, cmap='Greys')
     return red_pixels
 
@@ -131,37 +129,52 @@ def detect_connected_components(IMG):#2 pixels (p, q) are connected if q is in t
     MARK = np.zeros((shape[0], shape[1]))
    
     queue = NumpyQueue(shape[0] * shape[1], object)
-    
-    connected_component_number = 1
-    connected_component_number_and_size = []
+    connected_component_sizes = []
     for row in range(shape[0]):
         for col in range(shape[1]):
             if IMG[row, col] == 0 and MARK[row, col] == 0:# IMG[row, col] == 0 (if pixel is white - representing a pavement) - change to 1 for white
                 MARK[row, col] = 1
                 queue.Enqueue((row, col))
                 
-                connected_component_size = 0
-                while not queue.IsEmpty():
-                    connected_component_size += 1
+                cc_size = 0
+                while not queue.IsEmpty(): #like a breadth first search
+                    cc_size += 1
                     first_item = queue.Dequeue()
                     eight_neighbours = find_pixel_neighbours(first_item, shape)
                     for neighbour in eight_neighbours:
                         if IMG[neighbour] == 0 and MARK[neighbour] == 0:
                             MARK[neighbour] = 1
                             queue.Enqueue(neighbour)
-                connected_component_number_and_size.append((connected_component_number, connected_component_size))
-                connected_component_number += 1
-    save_connected_components_to_file(connected_component_number_and_size)
-#detect_connected_components(find_red_pixels('map.png'))
+                #connected_component_number_and_size.append((connected_component_number, connected_component_size))
+                connected_component_sizes.append(cc_size)
+    
+    #save_connected_components_to_file(connected_component_number_and_size)
+    #mat_plot.imshow(MARK, cmap="Greys")
+    #mat_plot.show()
+    print(f"cc pixels: {sum(connected_component_sizes)}")
+    print(f"MARK shape: {MARK.shape}")
+    save_connected_components_to_file(connected_component_sizes)
+    return MARK#, connected_component_sizes
+'''
+1   1   0
+0   0   0
+0   0   1
+
+'''
+
+
 def save_connected_components_to_file(connected_components : list[tuple]): #connected_components in form: [(component_number, component_size), ...]
-    with open('cc-ouput-2a.txt', 'w') as f:
-        for number, size in connected_components:
+    with open('cc-output-2a.txt', 'w') as f:
+        for number, size in enumerate(connected_components):
             f.write(f"Connected Component {number}, number of pixels = {size}\n")
         f.write(f"Total number of connected components = {len(connected_components)}")
-#detect_connected_components(red_pixel_map)
-detect_connected_components(find_red_pixels('map.png'))
 
-def detect_connected_components_sorted(*args,**kwargs):
+
+
+def detect_connected_components_sorted(MARK): #Finds connected components from 2D array MARK and sorts them in decreasing order.
     """Your documentation goes here"""
-    # Your code goes here
-
+    #======== VALIDATE INOUT ARRAY IS 2D ===================
+    #=======================================================
+    
+    pass
+detect_connected_components(find_red_pixels('map.png'))
