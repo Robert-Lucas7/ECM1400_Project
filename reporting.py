@@ -3,7 +3,7 @@
 # the signatures determined by the project specification
 from utils import *
 import numpy as np
-
+import copy #https://docs.python.org/3/library/copy.html
 def get_data():
     monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
     data_dict = {}
@@ -183,7 +183,6 @@ def count_missing_data(data,  monitoring_station, pollutant):
     return num_missing_data
 
 
-import copy
 def fill_missing_data(data, new_value,  monitoring_station, pollutant):
     """
     Returns a copy of the data with "No data" values are replaced by the parameter new_value.\n
@@ -195,19 +194,11 @@ def fill_missing_data(data, new_value,  monitoring_station, pollutant):
     pollutant
     """
     
-    #data_copy = copy.deepcopy(data)
-    data_copy = {}
-    for station, data_arr in data.items():
-        data_copy[station] = data_arr.copy()
-    print(f"data: {count_missing_data(data, 'Harlington', 'pm10')} data_copy: {count_missing_data(data_copy, 'Harlington', 'pm10')}")
+    data_copy = copy.deepcopy(data)
     station_data = data_copy[monitoring_station] #array is separated from the data passed as a parameter (NOT passed by reference).
-    for i in range(len(station_data)):
-        value = station_data[i][1][pollutant]
-        if value == "No data":
-            station_data[i][1][pollutant] = new_value
-            '''pollutant_dict = station_data[i][1]
-            pollutant_dict[pollutant] = new_value
-            station_data[i] = (station_data[i][0], pollutant_dict)'''
+    for _, pollution in station_data:
+        if pollution[pollutant] == "No data":
+            pollution[pollutant] = new_value
     #data_copy[monitoring_station] = station_data
     print(f"data: {count_missing_data(data, 'Harlington', 'pm10')} data_copy: {count_missing_data(data_copy, 'Harlington', 'pm10')}")
     
