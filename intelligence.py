@@ -127,8 +127,6 @@ def detect_connected_components(IMG):#2 pixels (p, q) are connected if q is in t
     """
     Returns all 8-connected components in the image as a 2D array.
     """
-
-
     shape = IMG.shape
     MARK = np.zeros((shape[0], shape[1]))
    
@@ -153,14 +151,15 @@ def detect_connected_components(IMG):#2 pixels (p, q) are connected if q is in t
                             queue.Enqueue(neighbour)
                 connected_component_number_and_size.append((connected_component_number, connected_component_size))
                 connected_component_number += 1
-    print(MARK)
-    queue.Show()
-    print(connected_component_number_and_size)
-
-detect_connected_components(find_red_pixels('map.png'))
-
-#detect_connected_components(red_pixel_map)
+    save_connected_components_to_file(connected_component_number_and_size)
 #detect_connected_components(find_red_pixels('map.png'))
+def save_connected_components_to_file(connected_components : list[tuple]): #connected_components in form: [(component_number, component_size), ...]
+    with open('cc-ouput-2a.txt', 'w') as f:
+        for number, size in connected_components:
+            f.write(f"Connected Component {number}, number of pixels = {size}\n")
+        f.write(f"Total number of connected components = {len(connected_components)}")
+#detect_connected_components(red_pixel_map)
+detect_connected_components(find_red_pixels('map.png'))
 
 def detect_connected_components_sorted(*args,**kwargs):
     """Your documentation goes here"""
