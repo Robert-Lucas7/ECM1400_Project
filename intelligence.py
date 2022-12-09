@@ -38,7 +38,7 @@ class NumpyQueue():
                 elif self.IsFull():
                     raise Exception("Cannot add item: Queue is full.")
                 else:
-                    self.top_pointer = (self.top_pointer + 1) % self.queue.size
+                    self.top_pointer = (self.top_pointer + 1) % self.queue.size # The top (tail) pointer should 'loop' around the end of the array as the queue is circular.
                 self.queue[self.top_pointer] = item
             else:
                 raise ValueError("Element to be added to the queue must be of the specified type during intialisation.")
@@ -91,46 +91,80 @@ class NumpyQueue():
             return True
         else:
             return False
-
-def find_red_pixels(map_filename, upper_threshold = 100, lower_threshold = 50):
+def validate_filename(filename : str):
+    if ['<', '>', ':', '"', "/", '\\', '|', '?', '*'] in filename:
+        return False
+    for c in filename:
+        if int(c) >= 0 and int(c) <= 31: #if the ASCII value of the character is between 0 and 31, it is invalid
+            return False
+    #Check if jpg, regex search/ match
+def find_red_pixels(map_filename : str, upper_threshold : int = 100, lower_threshold : int = 50) -> np.ndarray:
     """
     Returns and saves a 2D array of where the red pixels occur in an image.
-    """
-    #=============VALIDATE map_filename =======================
-    #==========================================================
-    rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255 # returns rgba [red, green, blue, aplha]
-    shape = rgb_img.shape
-    red_pixels = np.zeros((shape[0], shape[1]))# using 3 as saving as a jpg not png so doesn't need the alpha.
-    for row in range(shape[0]):
-        for col in range(shape[1]):
-            red =rgb_img[row,col][0]
-            green = rgb_img[row,col][1]
-            blue = rgb_img[row, col][2]
-            if red > upper_threshold and green < lower_threshold and blue < lower_threshold: #pixel is deemed to be red.
-                red_pixels[row, col] = 0 #0 is white for matplotlib 'greys' colourmap
-            else:
-                red_pixels[row, col] = 1
-    mat_plot.imsave('./data/map-red-pixels.jpg', red_pixels, cmap='Greys')
-    return red_pixels
 
-def find_cyan_pixels(map_filename, upper_threshold=100, lower_threshold=50):
+    Args:
+        map_filename (str): The name of the file that will contain where red pixels occur.
+        upper_threshold (int, optional): The upper threshold of to decide if a pixel is a red colour (0 - 255). Defaults to 100.
+        lower_threshold (int, optional): The lower threshold of to decide if a pixel is a red colour (0 - 255). Defaults to 50.
+
+    Returns:
+        ndarray: A 2D array that contains a 1 if a red pixel is at that location or a 0 otherwise.
     """
-    Returns and saves a 2D array of where the cyan pixels occur in an image.
+    try:
+        if not validate_filename(map_filename):
+            raise ValueError("The map_filename is invalid")
+        if not isinstance(map_filename, str) or not isinstance(upper_threshold, int) or not isinstance(lower_threshold, int): #check if default arguments already define the type of the object.
+            raise ValueError("The arguments are not of the correct type")
+        if (upper_threshold < 0 and upper_threshold > 255) or (lower_threshold < 0 and lower_threshold > 255):
+            raise ValueError("The upper_threshold and/or lower_threshold arguments are not in the correct range (0 - 255)")
+        
+        rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255 # Scales the image returned to have the colour values range from 0 to 255 (to avoid rounding errors)
+        red_pixels = np.zeros(rgb_img.shape[:2])# using 3 as saving as a jpg not png so doesn't need the alpha.
+        for row in range(rgb_img.shape[0]): #iterating over every element in the 2D array rgb_img
+            for col in range(rgb_img.shape[1]):
+                red =rgb_img[row,col][0]
+                green = rgb_img[row,col][1]
+                blue = rgb_img[row, col][2]
+                if red > upper_threshold and green < lower_threshold and blue < lower_threshold: #if conditions met, then pixel is deemed to be red.
+                    red_pixels[row, col] = 255 #255 represents white
+        mat_plot.imsave('./data/map-red-pixels.jpg', red_pixels, cmap="gray")
+        return red_pixels
+
+    except Exception as e:
+        print(e)
+#find_red_pixels("map.png")
+def find_cyan_pixels(map_filename : str, upper_threshold : int = 100, lower_threshold : int = 50):
     """
-    rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255 # returns rgba [red, green, blue, aplha]
-    shape = rgb_img.shape
-    cyan_pixels = np.zeros((shape[0], shape[1]))# using 3 as saving as a jpg not png so doesn't need the alpha.
-    for row in range(shape[0]):
-        for col in range(shape[1]):
-            red =rgb_img[row,col][0]
-            green = rgb_img[row,col][1]
-            blue = rgb_img[row, col][2]
-            if red < lower_threshold and green > upper_threshold and blue > upper_threshold: #pixel is deemed to be red.
-                cyan_pixels[row, col] = 0
-            else:
-                cyan_pixels[row, col] = 1
-    mat_plot.imsave('./data/map-cyan-pixels.jpg', cyan_pixels, cmap='Greys')
-    return cyan_pixels
+    Returns and saves a 2D array of where the red pixels occur in an image.
+
+    Args:
+        map_filename (str): The name of the file that will contain where cyan pixels occur.
+        upper_threshold (int, optional): The upper threshold of to decide if a pixel is a cyan colour (0 - 255). Defaults to 100.
+        lower_threshold (int, optional): The lower threshold of to decide if a pixel is a cyan colour (0 - 255). Defaults to 50.
+
+    Returns:
+        ndarray: A 2D array that contains a 1 if a cyan pixel is at that location or a 0 otherwise.
+    """
+    try:
+        if not validate_filename(map_filename):
+            raise ValueError("The map_filename is invalid")
+        if not isinstance(map_filename, str) or not isinstance(upper_threshold, int) or not isinstance(lower_threshold, int): #check if default arguments already define the type of the object.
+            raise ValueError("The arguments are not of the correct type")
+        if (upper_threshold < 0 and upper_threshold > 255) or (lower_threshold < 0 and lower_threshold > 255):
+            raise ValueError("The upper_threshold and/or lower_threshold arguments are not in the correct range (0 - 255)")
+        rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255 # returns rgba [red, green, blue, aplha]
+        cyan_pixels = np.zeros(rgb_img.shape[:2])# using 3 as saving as a jpg not png so doesn't need the alpha.
+        for row in range(rgb_img.shape[0]):
+            for col in range(rgb_img.shape[1]):
+                red =rgb_img[row,col][0]
+                green = rgb_img[row,col][1]
+                blue = rgb_img[row, col][2]
+                if red < lower_threshold and green > upper_threshold and blue > upper_threshold: #pixel is deemed to be red.
+                    cyan_pixels[row, col] = 255
+        mat_plot.imsave('./data/map-cyan-pixels.jpg', cyan_pixels, cmap='gray')
+        return cyan_pixels
+    except Exception as e:
+        print(e)
 #find_cyan_pixels('map.png')
 
 def find_pixel_neighbours(pixel_location, img_shape):
@@ -260,4 +294,4 @@ def merge_sort(L):
         return merge(right, left)
 
 #print(merge_sort([1,2,3,4,3,2,1]))
-detect_connected_components_sorted(detect_connected_components(find_red_pixels('map.png')))
+#detect_connected_components_sorted(detect_connected_components(find_red_pixels('map.png')))
