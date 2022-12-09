@@ -134,12 +134,12 @@ def hourly_average(data, monitoring_station : str, pollutant : str) -> list[floa
     """
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            hour_data = np.empty((24, 365))
+            hour_data = [[] for i in range(24)] #using a 2d list instead of array as some entries will be "No data" so the constant shape is not needed.
             for i in range(365):
                 for j in range(24):
                     value = data[monitoring_station][j + i * 24][1][pollutant]
                     if value != "No data":
-                        hour_data[j][i] = float(value)
+                        hour_data[j].append(float(value))
             mean_hour_data = []
             for i in range(24):
                 mean_hour_data.append(meannvalue(hour_data[i])) #hour_data[i] is the indivdual array of the hourly values in a day of that pollutant.
