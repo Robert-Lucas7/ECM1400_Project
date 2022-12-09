@@ -8,6 +8,8 @@
 # You can access the API documentation here http://api.erg.ic.ac.uk/AirQuality/help
 #
 import json
+import requests
+import datetime
 def get_live_data_from_api(site_code='MY1',species_code='NO',start_date=None,end_date=None):
     """
     Return data from the LondonAir API using its AirQuality API. 
@@ -17,8 +19,7 @@ def get_live_data_from_api(site_code='MY1',species_code='NO',start_date=None,end
     In order to use this function you first have to install the `requests` library.
     This code is provided as-is. 
     """
-    import requests
-    import datetime
+    
     start_date = datetime.date.today() if start_date is None else start_date
     end_date = start_date + datetime.timedelta(days=1) if end_date is None else end_date
     
@@ -35,7 +36,22 @@ def get_live_data_from_api(site_code='MY1',species_code='NO',start_date=None,end
     res = requests.get(url)
     return res.json()
 
-print(json.dumps(get_live_data_from_api(), indent=4))
+#print(json.dumps(get_live_data_from_api(), indent=4))
+def get_data_when_refreshed(site_code='MY1',species_code='NO',start_date=None,end_date=None, ):
+    endpoint = "http://api.erg.ic.ac.uk/AirQuality/Data/SiteSpecies/SiteCode={SITECODE}/SpeciesCode={SPECIESCODE}/StartDate={STARTDATE}/EndDate={ENDDATE}/Period={PERIOD}/Units={UNITS}/Step={STEP}/Json"
+    url = endpoint.format(
+        SITECODE = site_code,
+        SPECIESCODE = species_code,
+        STARTDATE = start_date,
+        ENDDATE= end_date,
+        PERIOD = None,
+        UNITS = None,
+        STEP = None
+    )
+    res = requests.get(url)
+    print(res.json())
+    #print(json.dumps(res.json(), indent = 4))
+get_data_when_refreshed()
 def rm_function_1(*args,**kwargs):
     """Your documentation goes here"""
     # Your code goes here
