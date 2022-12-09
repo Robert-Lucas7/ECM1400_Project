@@ -125,7 +125,7 @@ def quit():
 
 if __name__ == '__main__':
     # main_menu()
-    data = get_data()
+    data = get_data(["Harlington", "Marylebone Road", "N Kensington"])
     new_data = fill_missing_data(data, "5", "Harlington", "pm10")
     print(count_missing_data(data, "Harlington", "pm10"))
     print(count_missing_data(new_data, "Harlington", "pm10"))

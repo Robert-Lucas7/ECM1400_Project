@@ -4,11 +4,30 @@
 from utils import *
 import numpy as np
 import copy #https://docs.python.org/3/library/copy.html
-def get_data():
-    monitoring_stations = ["Harlington", "Marylebone Road", "N Kensington"]
+
+def get_data(monitoring_station_files : list[str]) -> dict[str,object]:
+    """
+    Returns a dictionary object containing the data from the files specified in the list 'monitoring_station_files'.
+    
+    Args:
+        monitoring_station_files (list[str]): the monitoring stations to read the data from the files.
+
+    Returns:
+        dict[str,object]: data of the pollutants at the monitoring stations in the format: \n
+        {
+        "station_0" : [ 
+            (date_and_hourly_value, {
+                "no" : nitrous_oxide_value,
+                "pm10" : pm10_value,
+                "pm25" : pm25_value
+            })
+            , ...
+            ]
+        "station_1" : [tuples in form (date_and_hourly_value, pollutants_and_values dictionary)]
+    }
+    """
     data_dict = {}
-    for station in monitoring_stations:
-        
+    for station in monitoring_station_files:
         fileName = f"Pollution-London {station}.csv"
         lines = open(f"./data/{fileName}", 'r').readlines()
         # intialises an uninitialised array of values.
@@ -26,38 +45,55 @@ def get_data():
 
     return data_dict
 # Higher order function that takes in the average function specified in utils.py
-def get_daily_averages(data, average_func, monitoring_station: str, pollutant: str) -> list:
-    '''
-    Returns a list of daily averages (mean or median).\n
-    Parameters
-    ----------
-    data - the monitoring station data in the form of a numpy array of tuples. The tuples are in the form (date_and_time : str, dictionary of pollution values)
-    '''
+def get_daily_averages(data, average_func, monitoring_station: str, pollutant: str) -> list[float]:
+    """
+    Returns a list of daily averages (mean or median) over a year (365 days).
+
+    Args:
+        data (dict[str, object]): the pollution data returned from get_data()
+        average_func (function): the average function to be used (meanvalue() or find_median())
+        monitoring_station (str): the monitoring station to get the daily averages for
+        pollutant (str): the pollutant to get the daily averages for
+
+    Raises:
+        ValueError: invalid arguments in monitoring_station or pollutant are passed into the function.
+
+    Returns:
+        list[float]: list of daily averages for the particular monitoring station and pollutant
+    """
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            data_for_monitoring_station = data[monitoring_station]
             average_daily_values = []
             for i in range(365):
                 hourly_values = []
                 for j in range(24):
-                    value = data_for_monitoring_station[i *
-                                                        24 + j][1][pollutant]
-                    # if there is an appropriate value and not "No Data". (Find better way to see if string can be cast to float)
+                    value = data[monitoring_station][i *
+                                                        24 + j][1][pollutant] # i * 24 + j is the index of the current pollutant value as there are 24 data entries per day.
                     if value != "No data":
-                        hourly_values.append(float(value))
-                mean_value_for_day = average_func(hourly_values)
-                average_daily_values.append(mean_value_for_day)
+                        hourly_values.append(float(value)) #Parse the value as a float (so the average function can be applied to the list) and add to the list of hourly values.
+                average_value_for_day = average_func(hourly_values)
+                average_daily_values.append(average_value_for_day)
             return average_daily_values
         else:
-            raise Exception(
-                "Invalid arguments passed (either as monitoring station or pollutant")
+            raise ValueError(
+                "Invalid arguments passed (either as monitoring station or pollutant)")
+    except IndexError:
+        print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(str(e))
+        print(e)
 
 
-def daily_average(data, monitoring_station: str, pollutant: str) -> list:
+def daily_average(data, monitoring_station: str, pollutant: str) -> list[float]:
     """
-    This function returns a list/array with the daily averages for a particular pollutant and monitoring station.
+    Returns a list of the daily means of a pollutant at a particular monitoring station.
+
+    Args:
+        data (dict[str, object]): the pollution data returned from get_data()
+        monitoring_station (str): the monitoring station to get the daily means for
+        pollutant (str): the pollutant to get the daily meanss for
+
+    Returns:
+        list[float]: list of the mean values of a pollutant for each day.
     """
     # Validate monitoring_station and pollutant.
     list_of_daily_means = get_daily_averages(
@@ -65,36 +101,52 @@ def daily_average(data, monitoring_station: str, pollutant: str) -> list:
     return list_of_daily_means
 
 
-def daily_median(data, monitoring_station: str, pollutant: str) -> list:
+def daily_median(data, monitoring_station: str, pollutant: str) -> list[float]:
     """
-    Returns a list of the daily median values of the pollutant at a specific monitoring station.
+    Returns a list of the daily medians of a pollutant at a particular monitoring station.
+    Args:
+        data (dict[str, object]): the pollution data returned from get_data()
+        monitoring_station (str): the monitoring station to get the daily medians for
+        pollutant (str): the pollutant to get the daily medians for
+
+    Returns:
+        list[float]:  list of the median values of a pollutant for each day
     """
     list_of_daily_medians = get_daily_averages(
         data, find_median, monitoring_station, pollutant)
     return list_of_daily_medians
 
 
-def hourly_average(data, monitoring_station, pollutant):
+def hourly_average(data, monitoring_station : str, pollutant : str) -> list[float]:
     """
-    Returns a list of hourly averages (24 values)
+    Returns the mean values of the pollutant for each hour in the day (24 values).
+
+    Args:
+        data (_type_): _description_
+        monitoring_station (str): _description_
+        pollutant (str): _description_
+
+    Raises:
+        Exception: _description_
+
+    Returns:
+        list[float]: _description_
     """
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             hour_data = np.empty((24, 365))
-            station_data = data[monitoring_station]
             for i in range(365):
                 for j in range(24):
-                    value = station_data[j + i * 24][1][pollutant]
+                    value = data[monitoring_station][j + i * 24][1][pollutant]
                     if value != "No data":
-                        hour_data[j][i] = value
-            mean_hour_data = np.empty(24)
+                        hour_data[j][i] = float(value)
+            mean_hour_data = []
             for i in range(24):
-
-                mean_hour_data[i] = meannvalue(hour_data[i])
+                mean_hour_data.append(meannvalue(hour_data[i])) #hour_data[i] is the indivdual array of the hourly values in a day of that pollutant.
             return mean_hour_data
 
         else:
-            raise Exception(
+            raise ValueError(
                 "Invalid arguments passed (either as monitoring station or pollutant")
     except Exception as e:
         print(str(e))
