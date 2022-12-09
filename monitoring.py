@@ -7,7 +7,7 @@
 # 
 # You can access the API documentation here http://api.erg.ic.ac.uk/AirQuality/help
 #
-
+import json
 def get_live_data_from_api(site_code='MY1',species_code='NO',start_date=None,end_date=None):
     """
     Return data from the LondonAir API using its AirQuality API. 
@@ -35,7 +35,7 @@ def get_live_data_from_api(site_code='MY1',species_code='NO',start_date=None,end
     res = requests.get(url)
     return res.json()
 
-
+print(json.dumps(get_live_data_from_api(), indent=4))
 def rm_function_1(*args,**kwargs):
     """Your documentation goes here"""
     # Your code goes here
