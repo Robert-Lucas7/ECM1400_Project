@@ -5,48 +5,92 @@ import numpy as np
 from matplotlib import pyplot as mat_plot
 from utils import insertion_sort
 class NumpyQueue():
-    def __init__(self, size, type):
+    """
+    Creates a circular queue that is implemented with a NumPy array.
+    """
+    def __init__(self, size : int, type):
+        """
+        Args:
+            size (int): The size of the queue.
+            type: The type that the NumPy array should be initialised to.
+        """
         self.data_type = type
         self.queue = np.empty(size, dtype=type)
         self.top_pointer = -1
         self.bottom_pointer = -1
 
-    def Enqueue(self, item):
-        if isinstance(item, self.data_type):
-            if self.IsEmpty():
-                self.top_pointer = 0
-                self.bottom_pointer = 0
-            elif self.IsFull():
-                raise Exception("Cannot add item: Queue is full.")
+    def Enqueue(self, item : any) -> None:
+        """
+        Adds an item to the tail of the queue.
+
+        Args:
+            item (any): The item to add to the queue
+
+        Raises:
+            Exception: The queue is full so an item cannot be added.
+            ValueError: The item to be added to the queue is a different type to the type specified during the intialisation of the NumPy array 'queue'.
+        """
+        try:
+            if isinstance(item, self.data_type): #if the item to be added is of the same type as the NumPy array 'queue'.
+                if self.IsEmpty():
+                    self.top_pointer = 0
+                    self.bottom_pointer = 0
+                elif self.IsFull():
+                    raise Exception("Cannot add item: Queue is full.")
+                else:
+                    self.top_pointer = (self.top_pointer + 1) % self.queue.size
+                self.queue[self.top_pointer] = item
             else:
-                self.top_pointer = (self.top_pointer + 1) % self.queue.size
-            self.queue[self.top_pointer] = item
-        else:
-            raise Exception("Element to be added to the queue must be of the specified type during intialisation.")
-    def Dequeue(self):
-        if self.IsEmpty():
-            raise Exception("Cannot dequeue item: Queue is empty.")
-        elif self.bottom_pointer == self.top_pointer:
-            item = self.queue[self.bottom_pointer]
-            self.bottom_pointer = -1
-            self.top_pointer = -1
-            return item
-        else:
-            self.bottom_pointer = (self.bottom_pointer + 1) % self.queue.size
-            return self.queue[self.bottom_pointer]
-    def IsEmpty(self):
+                raise ValueError("Element to be added to the queue must be of the specified type during intialisation.")
+        except Exception as e:
+            print(e)
+        
+    def Dequeue(self) -> any:
+        """
+        Removes and returns an item from the head of the queue.
+
+        Raises:
+            Exception: An item cannot be removed from the queue as it is empty.
+
+        Returns:
+            any: The item at the head of the queue that has just been removed.
+        """
+        try:
+            if self.IsEmpty():
+                raise Exception("Cannot dequeue item: Queue is empty.")
+            elif self.bottom_pointer == self.top_pointer:
+                item = self.queue[self.bottom_pointer]
+                self.bottom_pointer = -1
+                self.top_pointer = -1
+                return item
+            else:
+                self.bottom_pointer = (self.bottom_pointer + 1) % self.queue.size
+                return self.queue[self.bottom_pointer]
+        except Exception as e:
+            print(e)
+
+    def IsEmpty(self) -> bool:
+        """
+        A check for if the queue is empty.
+
+        Returns:
+            bool: A boolean value that indicates whether the queue is empty (True = queue is empty, False = queue is NOT empty).
+        """
         if self.bottom_pointer == -1 and self.top_pointer == -1:
             return True
         else:
             return False
-    def IsFull(self):
+    def IsFull(self) -> bool:
+        """
+        A check for if the queue is full.
+
+        Returns:
+            bool: A boolean value that indicates whether the queue is full (True = queue is full, False = queue is NOT full).
+        """
         if (self.top_pointer + 1) % self.queue.size == self.bottom_pointer:
             return True
         else:
             return False
-    def Show(self):
-        print(self.queue)
-
 
 def find_red_pixels(map_filename, upper_threshold = 100, lower_threshold = 50):
     """
