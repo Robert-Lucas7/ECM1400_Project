@@ -55,28 +55,32 @@ def get_monitoring_site_and_species() -> dict:
             site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"] = [site["Species"]["@SpeciesCode"]]
     return site_codes_and_pollutants_monitored
 
-def plot_pollutants_on_same_graph(start_date = None, end_date = None):
+def plot_pollutants_on_same_graph(site_codes_and_pollutants : dict, start_date = None, end_date = None) -> None:
     try:
-        pollutants_to_plot = []
+        site_code = input("Enter a site code.")
+            
+        if site_code not in site_codes_and_pollutants.keys(): #================= DO VALIDATION FOR ALL USER INPUTS ===========================
+            pass
+        pollutants_to_plot = [] # max three pollutants so graph isn't cluttered.
         inp = ''
         while len(pollutants_to_plot) < 3 and inp.upper() != 'Q':
-            inp = input("Enter a pollutant from NO, PM10, or PM25 (enter Q to stop).\n")
-            if inp.upper() in ["NO", "PM10", "PM25"]:
+            inp = input(f"Enter a pollutant from {  ['{pollutant, }' for i, pollutant in enumerate(site_codes_and_pollutants[site_code]['Species']) if i != len(site_codes_and_pollutants[site_code]['Species']) - 1 else pollutant] } (enter Q to stop).\n")
+            if inp.upper() in site_codes_and_pollutants[site_code]["Species"]:
                 if inp.upper() in pollutants_to_plot:
                     print("Pollutant is already going to be plotted.")
                 else:
                     pollutants_to_plot.append(inp.upper())
             elif inp.upper() != "Q":
                 print("Enter a valid pollutant. (NO, PM10, or )\n")
-        site_code = input("Enter a site code.")
+        
         data = {}
         for pollutant in pollutants_to_plot:
             response_data = get_live_data_from_api(site_code = site_code, species_code=pollutant)
             print(json.dumps(response_data, indent = 4))
         
-    except:
-        pass
-#plot_pollutants_on_same_graph()
+    except Exception as e:
+        print(e)
+plot_pollutants_on_same_graph(get_monitoring_site_and_species())
 def rm_function_1(*args,**kwargs):
     """Your documentation goes here"""
     # Your code goes here
