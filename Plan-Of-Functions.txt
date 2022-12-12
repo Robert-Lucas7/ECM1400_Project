@@ -114,3 +114,44 @@ return time_and_max_value
 count_missing_data(data, monitoring_station : str, pollutant : str) -> int
 
 fill_missing_data(data, monitoring_station : str, pollutant : str) -> copy of data
+
+
+=============  MONITORING MODULE =======================
+4 functions that provide information about air pollution from the London air API.
+
+Validation:
+Validate that the site_code is valid.
+Validate that the pollution type is monitored at that monitoring site.
+Validate start and end dates - that they were monitoring the pollutant at that site at that specific period of time.
+User inputs.
+
+
+
+Functions:
+** get_monitoring_sites_and_pollutants_monitored():
+return in form:
+{
+    site_code : [{
+        'pollutant1_code' : {
+            'start_date' : date,
+            'end_date' : date
+        }, {
+            ...
+        }
+    }]
+}
+Pseudocode: data = dict response from api
+my_data = {}
+for monitoring_site in data["Sites"]["Site"]:  #List of dictionaries
+    my_data["@Site_Code"] = [
+        {monitoring_site_pollutants[@SpeciesCode] : {
+            start : monitoring_site_pollutants[]
+            }
+        } for monitoring_site_pollutants in [monitoring_site["Species"]] ]  #monitoring_site["Species"] may be a dict or a list of dicts so need to convert to a list
+    
+
+** Plot multiple pollutants on the same graph (for the same monitoring site) for a given time period (if not measured during that period then just have a discontuinity)
+
+** 
+
+

@@ -37,6 +37,24 @@ def get_live_data_from_api(site_code='MY1',species_code='NO',start_date=None,end
     res = requests.get(url)
     return res.json()
 
+def get_monitoring_sites_and_species() -> dict:
+    """Returns information about which pollutants are monitored at each monitoring station and for what period of time
+
+    Returns:
+        dict: dictionary containing the monitoring site codes as keys and a nested dictionary of pollutants (and their information) as the values.
+    """
+    endpoint = "http://api.erg.ic.ac.uk/AirQuality/Information/MonitoringSiteSpecies/GroupName=London/Json"
+    monitoring_site_details =  requests.get(endpoint).json()
+    site_codes_and_pollutants_monitored = {}
+    for monitoring_site in monitoring_site_details["Sites"]["Site"]:
+        site_codes_and_pollutants_monitored[monitoring_site["@SiteCode"]] = {
+            monitoring_site_pollutants["@SpeciesCode"] : {
+                "start_date" : monitoring_site_pollutants['@DateMeasurementStarted'],
+                "end_date" : monitoring_site_pollutants['@DateMeasurementFinished']
+            }
+         for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
+    return site_codes_and_pollutants_monitored
+print(json.dumps(get_monitoring_sites_and_species(), indent = 4))
 def get_monitoring_site_and_species() -> dict:
     """Returns a dictionary containing all of the site codes and pollutants monitored at each site.
 
@@ -46,6 +64,7 @@ def get_monitoring_site_and_species() -> dict:
     monitoring_site_details =  requests.get(endpoint).json()
     site_codes_and_pollutants_monitored = {}
     for site in monitoring_site_details["Sites"]["Site"]: #sites is a dictionary
+        print(json.dumps(site, indent = 4))
         site_codes_and_pollutants_monitored[site["@SiteCode"]] = {
             "SiteName" : site["@SiteName"]
         }
@@ -53,6 +72,9 @@ def get_monitoring_site_and_species() -> dict:
             site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"] = [species["@SpeciesCode"] for species in site["Species"]]
         else:
             site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"] = [site["Species"]["@SpeciesCode"]]
+        for species in site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"]:
+            site_codes_and_pollutants_monitored["@SpeciesCode"]["start_date"] = species["@DateMeasurementStarted"]
+            species["end_date"] = species["@DateMeasurementFinished"]
     return site_codes_and_pollutants_monitored
 
 def plot_pollutants_on_same_graph(site_codes_and_pollutants : dict, start_date = None, end_date = None) -> None:
@@ -64,7 +86,7 @@ def plot_pollutants_on_same_graph(site_codes_and_pollutants : dict, start_date =
         pollutants_to_plot = [] # max three pollutants so graph isn't cluttered.
         inp = ''
         while len(pollutants_to_plot) < 3 and inp.upper() != 'Q':
-            inp = input(f"Enter a pollutant from {  ['{pollutant, }' for i, pollutant in enumerate(site_codes_and_pollutants[site_code]['Species']) if i != len(site_codes_and_pollutants[site_code]['Species']) - 1 else pollutant] } (enter Q to stop).\n")
+            inp = input(f"Enter a pollutant from ")#{  ['{pollutant, }' for i, pollutant in enumerate(site_codes_and_pollutants[site_code]['Species']) if i != len(site_codes_and_pollutants[site_code]['Species']) - 1 else pollutant] } (enter Q to stop).\n")
             if inp.upper() in site_codes_and_pollutants[site_code]["Species"]:
                 if inp.upper() in pollutants_to_plot:
                     print("Pollutant is already going to be plotted.")
@@ -80,7 +102,8 @@ def plot_pollutants_on_same_graph(site_codes_and_pollutants : dict, start_date =
         
     except Exception as e:
         print(e)
-plot_pollutants_on_same_graph(get_monitoring_site_and_species())
+#print(get_monitoring_site_and_species())
+#plot_pollutants_on_same_graph(get_monitoring_site_and_species())
 def rm_function_1(*args,**kwargs):
     """Your documentation goes here"""
     # Your code goes here
