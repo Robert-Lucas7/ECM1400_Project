@@ -54,56 +54,70 @@ def get_monitoring_sites_and_species() -> dict:
             }
          for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
     return site_codes_and_pollutants_monitored
-print(json.dumps(get_monitoring_sites_and_species(), indent = 4))
-def get_monitoring_site_and_species() -> dict:
-    """Returns a dictionary containing all of the site codes and pollutants monitored at each site.
-
-    Returns:
-        dict: dictionary containing all site codes as the keys. The values are a nested dictionary with keys of: "SiteName" and "Species" (key "Species" contains a list of pollutants monitored at that site)."""
-    endpoint = "http://api.erg.ic.ac.uk/AirQuality/Information/MonitoringSiteSpecies/GroupName=London/Json"
-    monitoring_site_details =  requests.get(endpoint).json()
-    site_codes_and_pollutants_monitored = {}
-    for site in monitoring_site_details["Sites"]["Site"]: #sites is a dictionary
-        print(json.dumps(site, indent = 4))
-        site_codes_and_pollutants_monitored[site["@SiteCode"]] = {
-            "SiteName" : site["@SiteName"]
-        }
-        if type(site["Species"]) == list: # As site["Species"] is either a single dictionary or a list of dictionaries.
-            site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"] = [species["@SpeciesCode"] for species in site["Species"]]
+#print(json.dumps(get_monitoring_sites_and_species(), indent = 4))
+def get_user_input_for_monitoring_site(site_codes_and_pollutants : dict) -> str :
+    valid_site_code = False
+    site_code_inp = ""
+    while not valid_site_code:
+        site_code_inp = input("Enter the site code you would like to plot the pollutants for.\n")
+        if site_code_inp.upper() not in site_codes_and_pollutants.keys():
+            print("Site code is invalid.")
         else:
-            site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"] = [site["Species"]["@SpeciesCode"]]
-        for species in site_codes_and_pollutants_monitored[site["@SiteCode"]]["Species"]:
-            site_codes_and_pollutants_monitored["@SpeciesCode"]["start_date"] = species["@DateMeasurementStarted"]
-            species["end_date"] = species["@DateMeasurementFinished"]
-    return site_codes_and_pollutants_monitored
+            valid_site_code = True
+    return site_code_inp.upper()
 
 def plot_pollutants_on_same_graph(site_codes_and_pollutants : dict, start_date = None, end_date = None) -> None:
-    try:
-        site_code = input("Enter a site code.")
+    
+    try:        
+        # Get site code here
+        '''valid_site_code = False
+        while not valid_site_code:
+            site_code_inp = input("Enter the site code you would like to plot the pollutants for.\n")
+            if site_code_inp.upper() not in site_codes_and_pollutants.keys():
+                print("Site code is invalid.")
+            else:
+                valid_site_code = True'''
+        site_code_inp = "VS1" #Testing
+        # Get pollutants to plot here
+        stop_adding_pollutants = False
+        pollutants_to_plot = []
+        while not stop_adding_pollutants:
+            print(f"The pollutant options are: {', '.join(site_codes_and_pollutants[site_code_inp].keys())}")
+            pollutant_inp = input("Enter a pollutant code to plot on the graph (or enter 'q'/'Q' to stop adding pollutants)")
             
-        if site_code not in site_codes_and_pollutants.keys(): #================= DO VALIDATION FOR ALL USER INPUTS ===========================
-            pass
-        pollutants_to_plot = [] # max three pollutants so graph isn't cluttered.
-        inp = ''
-        while len(pollutants_to_plot) < 3 and inp.upper() != 'Q':
-            inp = input(f"Enter a pollutant from ")#{  ['{pollutant, }' for i, pollutant in enumerate(site_codes_and_pollutants[site_code]['Species']) if i != len(site_codes_and_pollutants[site_code]['Species']) - 1 else pollutant] } (enter Q to stop).\n")
-            if inp.upper() in site_codes_and_pollutants[site_code]["Species"]:
-                if inp.upper() in pollutants_to_plot:
-                    print("Pollutant is already going to be plotted.")
-                else:
-                    pollutants_to_plot.append(inp.upper())
-            elif inp.upper() != "Q":
-                print("Enter a valid pollutant. (NO, PM10, or )\n")
+            
+            if pollutant_inp.upper() == 'Q':
+                stop_adding_pollutants = True
+            elif pollutant_inp.upper() not in site_codes_and_pollutants[site_code_inp].keys():
+                print(f"Pollutant not available at site code {site_code_inp}")
+            elif pollutant_inp not in pollutants_to_plot:
+                pollutants_to_plot.append(pollutant_inp.upper())# "VS1" : [CO, NO2, O3, PM10]
+            else:
+                print(f"Pollutant {pollutant_inp} is already being plotted.")
+
+            if len(pollutants_to_plot) == len(site_codes_and_pollutants[site_code_inp].keys()): #All possible pollutants have been added.
+                stop_adding_pollutants = True
+            print(f"Pollutants to plot: {', '.join(pollutants_to_plot)}")
         
-        data = {}
+        # ========== Check start and end dates that the pollutants are monitored for - if they aren't measured in this period of time, notify (print) to the user that the graph will be incomplete. ===============
+        
+        #data = get_live_data_from_api()
         for pollutant in pollutants_to_plot:
-            response_data = get_live_data_from_api(site_code = site_code, species_code=pollutant)
-            print(json.dumps(response_data, indent = 4))
-        
+            pollutant_info = site_codes_and_pollutants[site_code_inp][pollutant]
+            pollutant_data = get_live_data_from_api(site_code_inp, pollutant, start_date = pollutant_info["start_date"][:10], end_date= pollutant_info["end_date"][:10])
+            print(pollutant_data)
+
     except Exception as e:
         print(e)
-#print(get_monitoring_site_and_species())
-#plot_pollutants_on_same_graph(get_monitoring_site_and_species())
+
+def get_info_about_pollutants_at_site(site_codes_and_pollutants : dict) -> None :
+    site_code = get_user_input_for_monitoring_site(site_codes_and_pollutants)
+    print(f"Pollutants monitored at site: {site_code}")
+    print(f"{'Pollutant' : <20}{'Start date' : <25}{'End date' : <25}")
+    for pollutant, pollutant_info in site_codes_and_pollutants[site_code].items():
+       print(f"{pollutant : <20}{pollutant_info['start_date'] : <25}{pollutant_info['end_date'] : <25}")
+#get_info_about_pollutants_at_site(get_monitoring_sites_and_species())
+plot_pollutants_on_same_graph(get_monitoring_sites_and_species())
 def rm_function_1(*args,**kwargs):
     """Your documentation goes here"""
     # Your code goes here
