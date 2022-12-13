@@ -11,9 +11,28 @@ import json
 import requests
 import datetime
 from matplotlib import pyplot as mat_plot
+import numpy as np
+from utils import maxvalue
+import math
 
 # ================================================ Helper Functions ==========================================================
 # ============================================================================================================================
+def get_monitoring_sites_and_species() -> dict:
+    """Returns information about which pollutants are monitored at each monitoring station and for what period of time
+
+    Returns:
+        dict: dictionary containing the monitoring site codes as keys and a nested dictionary of pollutants (and their information) as the values."""
+    endpoint = "http://api.erg.ic.ac.uk/AirQuality/Information/MonitoringSiteSpecies/GroupName=London/Json"
+    monitoring_site_details = requests.get(endpoint).json()
+    site_codes_and_pollutants_monitored = {}
+    for monitoring_site in monitoring_site_details["Sites"]["Site"]:
+        site_codes_and_pollutants_monitored[monitoring_site["@SiteCode"]] = {
+            monitoring_site_pollutants["@SpeciesCode"]: {
+                "start_date": monitoring_site_pollutants['@DateMeasurementStarted'],
+                "end_date": monitoring_site_pollutants['@DateMeasurementFinished']
+            }
+            for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
+    return site_codes_and_pollutants_monitored
 
 
 def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, end_date=None):
@@ -42,25 +61,69 @@ def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, 
     res = requests.get(url)
     return res.json()
 
+def generate_graph(datetime_and_value_kvps : list[dict[str, float]], max_height_of_graph : int = 40, max_width_of_graph : int = 180, border_left_width : int = 5, border_bottom_height : int = 3, num_on_y_axis = 6) -> np.ndarray:
+    #Need to find the max and min values to ensure the correct scaling
+    max_value = float(datetime_and_value_kvps[maxvalue( [float(d["@Value"]) for d in datetime_and_value_kvps if d["@Value"] != ""] )]["@Value"]) #Finding the max pollutant value
+    height = math.ceil( (max_height_of_graph // max_value) * max_value)
+    plot = np.full((height, max_width_of_graph), " ") #Create array of shape fill with blank spaces
 
-def get_monitoring_sites_and_species() -> dict:
-    """Returns information about which pollutants are monitored at each monitoring station and for what period of time
+    for index, d in enumerate(datetime_and_value_kvps):
+        if d["@Value"] != "":
+            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)//max_value) * float(d["@Value"]))
+            col = index + border_left_width #Validate that this is within the max_width_of_graph otherwise shrink data by making it into days or even weeks
+            plot[row, col] = 'x'
+    #Adding the border
+    for row in range(0, max_height_of_graph - border_bottom_height):
+        plot[row, border_left_width] = '|'
+    for col in range(border_left_width, max_width_of_graph):
+        plot[max_height_of_graph - border_bottom_height, col] = '-'
+    # 6 incremental numbers on y-axis
+    for i in range(0,num_on_y_axis):
+        value = ((max_value/num_on_y_axis) * i)
+        row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)//max_value) * value)
+        row_string = f"{value : .3g}"
+        print(row_string)
+    #print_graph(plot)
 
-    Returns:
-        dict: dictionary containing the monitoring site codes as keys and a nested dictionary of pollutants (and their information) as the values.
-    """
-    endpoint = "http://api.erg.ic.ac.uk/AirQuality/Information/MonitoringSiteSpecies/GroupName=London/Json"
-    monitoring_site_details = requests.get(endpoint).json()
-    print(json.dumps(monitoring_site_details, indent=4))
-    site_codes_and_pollutants_monitored = {}
-    for monitoring_site in monitoring_site_details["Sites"]["Site"]:
-        site_codes_and_pollutants_monitored[monitoring_site["@SiteCode"]] = {
-            monitoring_site_pollutants["@SpeciesCode"]: {
-                "start_date": monitoring_site_pollutants['@DateMeasurementStarted'],
-                "end_date": monitoring_site_pollutants['@DateMeasurementFinished']
-            }
-            for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
-    return site_codes_and_pollutants_monitored
+def print_graph(graph : np.ndarray):
+    for row in range(graph.shape[0]):
+        string = ""
+        for col in range(graph.shape[1]):
+            string += graph[row, col]
+        print(string)
+
+
+def plot_pollutants_on_graph(monitoring_sites_and_pollutants : dict) -> None:
+    #Validate site code - USER INPUT
+    site_code_inp = "VS1"
+    #Validate pollutant is available at site - USER INPUT
+    pollutant_to_plot = "CO"
+    #Validate time period selected - USER INPUT
+    time_period = "Week"
+    #Validate start_date - ensure that start_date + datetime.timedelta(days=day_difference) is within both bounds (of when the monitoring started or finished - be careful with empty string for "@MonitoringFinished")  - USER INPUT
+    start_date = datetime.datetime.strptime("2003-07-02", "%Y-%m-%d").date()
+    end_date = start_date + datetime.timedelta(days = 7)
+
+    
+    
+    response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"] #Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
+    generate_graph(response_data)
+    #l = [float(d["@Value"]) for d in response_data if d["@Value"] != ""]
+    #print(len(l))
+    #mat_plot.plot(l)
+    #mat_plot.show()
+    #print(l)
+    #print(json.dumps(response_data, indent = 4))
+
+
+plot_pollutants_on_graph(get_monitoring_sites_and_species())
+#print(json.dumps(get_monitoring_sites_and_species(), indent = 4))
+
+
+
+
+
+
 
 
 def get_user_input_for_monitoring_site(site_codes_and_pollutants: dict) -> str:
