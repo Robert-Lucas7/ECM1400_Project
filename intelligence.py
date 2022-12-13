@@ -88,7 +88,7 @@ def validate_filename(filename : str) -> None:
     if ['<', '>', ':', '"', "/", '\\', '|', '?', '*'] in filename:
         raise ValueError("Invalid characters in the filename.")
     for c in filename:
-        if int(c) >= 0 and int(c) <= 31: #if the ASCII value of the character is between 0 and 31, it is invalid
+        if ord(c) >= 0 and ord(c) <= 31: #if the ASCII value of the character is between 0 and 31, it is invalid
             raise ValueError("Invalid characters in the filename.")
     if not isinstance(filename, str):
         raise ValueError("The filename must be a string.")
