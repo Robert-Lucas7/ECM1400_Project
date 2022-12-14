@@ -96,10 +96,6 @@ def print_graph(graph : np.ndarray) -> None:
             string += graph[row, col]
         print(string)
 
-# ============================================================================================================================
-
-
-
 def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, end_date=None):
     """
     Return data from the LondonAir API using its AirQuality API. 
@@ -126,16 +122,50 @@ def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, 
     res = requests.get(url)
     return res.json()
 
+def get_user_input_for_monitoring_site(site_codes_and_pollutants: dict) -> str:
+    """Gets and returns a user's input for the monitoring site code.
 
-    
+    Args:
+        site_codes_and_pollutants (dict): A dictionary containing all valid site codes and their pollutants (with other information)
 
+    Raises:
+        ValueError: Is raised if the user enters 'q'/'Q' to quit to the main menu.
 
+    Returns:
+        str: The monitoring site code"""
+    valid_site_code = False
+    site_code_inp = ""
+    while not valid_site_code:
+        site_code_inp = input(
+            "Enter the site code.\t").upper()
+        if site_code_inp == "Q":
+            raise ValueError("Quit selected")
+        elif site_code_inp not in site_codes_and_pollutants.keys():
+            print("Site code is invalid.")
+        else:
+            valid_site_code = True
+    return site_code_inp
+
+def get_user_input_for_pollutant(valid_pollutants : list) -> str:
+    is_pollutant_valid = False
+    pollutant_inp = ""
+    print(f"Valid pollutants: { ','.join(valid_pollutants) }")
+    while not is_pollutant_valid:
+        pollutant_inp = input("Enter the pollutant.\t").upper()
+        if pollutant_inp == "Q":
+            raise ValueError("Quit selected")
+        elif pollutant_inp not in valid_pollutants:
+            print("Pollutant is invalid.")
+        else:
+            is_pollutant_valid = True
+    return pollutant_inp
+# ============================================================================================================================
 
 def plot_pollutants_on_graph(monitoring_sites_and_pollutants : dict) -> None:
     #Validate site code - USER INPUT
-    site_code_inp = "VS1"
+    site_code_inp = get_user_input_for_monitoring_site()
     #Validate pollutant is available at site - USER INPUT
-    pollutant_to_plot = "CO"
+    pollutant_to_plot = get_user_input_for_pollutant()
     #Validate time period selected - USER INPUT
     time_period = "Week"
     #Validate start_date - ensure that start_date + datetime.timedelta(days=day_difference) is within both bounds (of when the monitoring started or finished - be careful with empty string for "@MonitoringFinished")  - USER INPUT
@@ -181,20 +211,86 @@ def display_most_recent_pollutant_data(monitoring_sites_and_pollutants : dict): 
     except Exception as e:print(e)
 
 def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants : dict) -> None:
-    pass
-#display_most_recent_pollutant_data(get_monitoring_sites_and_species())
+    #Get a valid pollutant - USER INPUT
+    #/Information/Species/Json endpoint to get info about the commonly monitored species.
+    valid_pollutants = requests.get("https://api.erg.ic.ac.uk/AirQuality/Information/Species/Json").json()["AirQualitySpecies"]["Species"]
+    
+    print(valid_pollutants)
 
-def get_user_input_for_monitoring_site(site_codes_and_pollutants: dict) -> str:
-    valid_site_code = False
-    site_code_inp = ""
-    while not valid_site_code:
-        site_code_inp = input(
-            "Enter the site code you would like to plot the pollutants for.\n").upper()
-        if site_code_inp not in site_codes_and_pollutants.keys():
-            print("Site code is invalid.")
-        else:
-            valid_site_code = True
-    return site_code_inp
+    pollutant_to_compare_sites = "NO2"
+    #Iterate over monitoring_sites_and_pollutants to get all of the sites that are currently monitoring them
+    sites_currently_monitoring_pollutant = []
+    for site, pollutant_dict in monitoring_sites_and_pollutants.items():
+        if pollutant_dict.get(pollutant_to_compare_sites) != None:
+            if pollutant_dict[pollutant_to_compare_sites]["end_date"] == "":
+                sites_currently_monitoring_pollutant.append(site)
+   
+    #User picks up to 5 monitoring sites to compare - If there is not data within the past day then the monitoring station will not be compared.
+    monitoring_sites_to_compare = ["BG1", "BG2","BX2"]
+    site_and_most_recent_value = {}
+    for site in monitoring_sites_to_compare:
+        data = get_live_data_from_api(site, pollutant_to_compare_sites)["RawAQData"]["Data"]
+        print(data)
+        for d in reversed(data): #list of dicts - NEED to iterate backwards.
+            if d["@Value"] != "":
+                site_and_most_recent_value[site] = {
+                    'time' : d["@MeasurementDateGMT"],
+                    'value' : d["@Value"]
+                }
+                break
+    print(f"{pollutant_to_compare_sites} at {','.join(site_and_most_recent_value.keys())}")
+    print(f"{'Monitoring Site' : <25}{'Date and time' : <25}{'Value' : <25}")
+    for site, pollutant_info in site_and_most_recent_value.items():
+        print(f"{site : <25}{pollutant_info['time'] : <25}{pollutant_info['value'] : <25}")
+
+
+comparison_of_pollutant_at_monitoring_sites(get_monitoring_sites_and_species())
+
+
+def get_pollution_values_at_monitoring_site(monitoring_sites_and_pollutants : dict) -> None:
+    #Get monitoring site to get current values - USER INPUT
+    try:
+        site_code = get_user_input_for_monitoring_site(monitoring_sites_and_pollutants)
+
+        pollutant_data = {}
+        for pollutant in monitoring_sites_and_pollutants[site_code].keys():
+            data = get_live_data_from_api(site_code, pollutant)["RawAQData"]["Data"]
+            is_recent_value = False
+            for d in reversed(data):
+                if d["@Value"] != "":
+                    pollutant_data[pollutant] = {
+                        'time' : d["@MeasurementDateGMT"],
+                        'value' : d["@Value"]
+                    }
+                    is_recent_value = True
+                    break
+            if not is_recent_value:
+                pollutant_data[pollutant] = {
+                            'time' : 'N/A',
+                            'value' : 'N/A'
+                        } 
+
+        
+        print(f"Showing recent values for { site_code }. (N/A means that there is no very recent data available for the pollutant at the monitoring site)")
+        print( f"{'Pollutant' : <25}{ 'Date and time' : <25}{ 'Value' : <25}" )
+        for pollutant, pollutant_info in pollutant_data.items():
+            print(f"{pollutant : <25}{pollutant_info['time'] : <25}{pollutant_info['value'] : <25}")
+    except ValueError as e:
+        if e.args == "Quit selected":
+            print("Quitting - returning to the main menu")
+    except Exception as e:
+        print("Something went wrong - returning to the main menu.")
+
+#get_pollution_values_at_monitoring_site(get_monitoring_sites_and_species())
+
+
+
+
+
+
+
+
+
 
 
 def get_dates_for_query(time_period: str, site_codes_and_pollutants: dict, site_code, pollutants, num_weeks: int = 1) -> tuple[datetime.date, datetime.date]:
