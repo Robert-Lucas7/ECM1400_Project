@@ -16,7 +16,6 @@ from utils import maxvalue
 import math
 
 # ================================================ Helper Functions ==========================================================
-# ============================================================================================================================
 def get_monitoring_sites_and_species() -> dict:
     """Returns information about which pollutants are monitored at each monitoring station and for what period of time
 
@@ -33,6 +32,64 @@ def get_monitoring_sites_and_species() -> dict:
             }
             for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
     return site_codes_and_pollutants_monitored
+
+def generate_graph(pollutant_values : list[float], max_height_of_graph : int = 40, max_width_of_graph : int = 180, num_on_y_axis = 5) -> np.ndarray:
+    """Creates a graph represented as a 2D NumPy array that plots the value of a pollutant at a monitoring station.
+
+    Args:
+        datetime_and_value_kvps (list[dict[str, float]]): _description_
+        max_height_of_graph (int, optional): _description_. Defaults to 40.
+        max_width_of_graph (int, optional): _description_. Defaults to 180.
+        num_on_y_axis (int, optional): The number of values shown on the y-axis (excluding zero). Defaults to 5.
+
+    Returns:
+        np.ndarray: A 2D array that represents a graph.
+    """
+    
+    #Need to find the max and min values to ensure the correct scaling
+    max_value = float(pollutant_values[maxvalue(pollutant_values)]) #Finding the max pollutant value
+    height = math.ceil( (max_height_of_graph // max_value) * max_value)
+    plot = np.full((height, max_width_of_graph), " ") #Create array of shape fill with blank spaces
+
+    #Getting y-axis values
+    y_axis_values = []
+    longest_value = 0
+    for i in range(0,num_on_y_axis+1):
+        value = ((max_value/num_on_y_axis) * i)
+        value_string = f"{value : .3g}".strip()
+        if len(value_string) > longest_value:
+            longest_value = len(value_string)
+        y_axis_values.append(value_string)
+    
+    #Calculating the border widths needed
+    border_left_width = longest_value + 1
+    border_bottom_height = len(str(len(pollutant_values)))  + 1
+    #Adding y-axis values
+    for value in y_axis_values:
+        for col in range(len(value)):
+            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)//max_value) * float(value))
+            plot[row, col] = value[col]
+    #Adding x-axis values
+    for i in range(len(pollutant_values)):
+        num_as_string = str(i)
+        #print(num_as_string)
+        for index, digit in enumerate(num_as_string):
+            #print(index + max_height_of_graph - border_bottom_height + 1, i + border_left_width)
+            plot[index + max_height_of_graph - border_bottom_height + 1, i + border_left_width] = digit
+    #Plotting data points
+    for index, value in enumerate(pollutant_values):
+        if value != None:
+            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)//max_value) * value)
+            col = index + border_left_width #Validate that this is within the max_width_of_graph otherwise shrink data by making it into days or even weeks
+            plot[row, col] = 'x'
+    #Adding the border
+    for row in range(0, max_height_of_graph - border_bottom_height):
+        plot[row, border_left_width - 1] = '|'
+    for col in range(border_left_width, max_width_of_graph):
+        plot[max_height_of_graph - border_bottom_height, col] = '-'
+    return plot
+# ============================================================================================================================
+
 
 
 def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, end_date=None):
@@ -61,29 +118,8 @@ def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, 
     res = requests.get(url)
     return res.json()
 
-def generate_graph(datetime_and_value_kvps : list[dict[str, float]], max_height_of_graph : int = 40, max_width_of_graph : int = 180, border_left_width : int = 5, border_bottom_height : int = 3, num_on_y_axis = 6) -> np.ndarray:
-    #Need to find the max and min values to ensure the correct scaling
-    max_value = float(datetime_and_value_kvps[maxvalue( [float(d["@Value"]) for d in datetime_and_value_kvps if d["@Value"] != ""] )]["@Value"]) #Finding the max pollutant value
-    height = math.ceil( (max_height_of_graph // max_value) * max_value)
-    plot = np.full((height, max_width_of_graph), " ") #Create array of shape fill with blank spaces
 
-    for index, d in enumerate(datetime_and_value_kvps):
-        if d["@Value"] != "":
-            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)//max_value) * float(d["@Value"]))
-            col = index + border_left_width #Validate that this is within the max_width_of_graph otherwise shrink data by making it into days or even weeks
-            plot[row, col] = 'x'
-    #Adding the border
-    for row in range(0, max_height_of_graph - border_bottom_height):
-        plot[row, border_left_width] = '|'
-    for col in range(border_left_width, max_width_of_graph):
-        plot[max_height_of_graph - border_bottom_height, col] = '-'
-    # 6 incremental numbers on y-axis
-    for i in range(0,num_on_y_axis):
-        value = ((max_value/num_on_y_axis) * i)
-        row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)//max_value) * value)
-        row_string = f"{value : .3g}"
-        print(row_string)
-    #print_graph(plot)
+    
 
 def print_graph(graph : np.ndarray):
     for row in range(graph.shape[0]):
@@ -107,17 +143,13 @@ def plot_pollutants_on_graph(monitoring_sites_and_pollutants : dict) -> None:
     
     
     response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"] #Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
-    generate_graph(response_data)
-    #l = [float(d["@Value"]) for d in response_data if d["@Value"] != ""]
-    #print(len(l))
-    #mat_plot.plot(l)
-    #mat_plot.show()
-    #print(l)
-    #print(json.dumps(response_data, indent = 4))
+    pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data ]
+    graph = generate_graph(pollutant_values)
+    print_graph(graph)
 
 
 plot_pollutants_on_graph(get_monitoring_sites_and_species())
-#print(json.dumps(get_monitoring_sites_and_species(), indent = 4))
+
 
 
 
