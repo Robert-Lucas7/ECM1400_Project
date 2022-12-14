@@ -14,7 +14,7 @@ from matplotlib import pyplot as mat_plot
 import numpy as np
 from utils import maxvalue
 import math
-
+from time import sleep
 # ================================================ Helper Functions ==========================================================
 def get_monitoring_sites_and_species() -> dict:
     """Returns information about which pollutants are monitored at each monitoring station and for what period of time
@@ -88,6 +88,14 @@ def generate_graph(pollutant_values : list[float], max_height_of_graph : int = 4
     for col in range(border_left_width, max_width_of_graph):
         plot[max_height_of_graph - border_bottom_height, col] = '-'
     return plot
+
+def print_graph(graph : np.ndarray) -> None:
+    for row in range(graph.shape[0]):
+        string = ""
+        for col in range(graph.shape[1]):
+            string += graph[row, col]
+        print(string)
+
 # ============================================================================================================================
 
 
@@ -114,19 +122,13 @@ def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, 
         start_date=start_date,
         end_date=end_date
     )
-    print("URL: " + url)
+    #print("URL: " + url)
     res = requests.get(url)
     return res.json()
 
 
     
 
-def print_graph(graph : np.ndarray):
-    for row in range(graph.shape[0]):
-        string = ""
-        for col in range(graph.shape[1]):
-            string += graph[row, col]
-        print(string)
 
 
 def plot_pollutants_on_graph(monitoring_sites_and_pollutants : dict) -> None:
@@ -147,16 +149,40 @@ def plot_pollutants_on_graph(monitoring_sites_and_pollutants : dict) -> None:
     graph = generate_graph(pollutant_values)
     print_graph(graph)
 
+def display_most_recent_pollutant_data(monitoring_sites_and_pollutants : dict): #Test at the beginning of an hour
+    #Get site_code and validate - USER INPUT
+    site_code = "WMB"
+    #Get pollutant and validate - ONLY if they are still monitoring the pollutant - raise exception if the monitoring site has no currently monitored pollutants - USER INPUT
+    pollutant = "NO2"
 
-plot_pollutants_on_graph(get_monitoring_sites_and_species())
+    
+    try:
+        print("To stop and return to the main menu press 'Ctrl + c'")
+        prev_time = -1 # This is not possible
+        current_time_and_value = {
+            'time' : None,
+            'value' : None
+        }
+        while True:
+            response_data = get_live_data_from_api(site_code, pollutant)["RawAQData"]["Data"]
+            for i in range(len(response_data) - 1, 0, -1):
+                if response_data[i]["@Value"] != "":
+                    current_time_and_value['time'] = response_data[i]["@MeasurementDateGMT"]
+                    current_time_and_value['value'] = response_data[i]["@Value"]
+            if prev_time != current_time_and_value:
+                print(f"The most recent value of {pollutant} at {site_code} at {current_time_and_value['time']} is: {current_time_and_value['value']}")
+            prev_time = current_time_and_value
+            sleep(5)
 
 
 
+    except KeyboardInterrupt:
+        print("Returning to main menu")
+    except Exception as e:print(e)
 
-
-
-
-
+def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants : dict) -> None:
+    pass
+#display_most_recent_pollutant_data(get_monitoring_sites_and_species())
 
 def get_user_input_for_monitoring_site(site_codes_and_pollutants: dict) -> str:
     valid_site_code = False
