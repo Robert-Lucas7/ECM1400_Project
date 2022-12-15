@@ -49,10 +49,11 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
     Returns:
         np.ndarray: A 2D array that represents a graph.
     """
-    print(pollutant_values)
+    print("POLLUTANT VALUES: ",pollutant_values)
     # Need to find the max and min values to ensure the correct scaling
     # Finding the max pollutant value
     max_value = float(pollutant_values[maxvalue( [value for value in pollutant_values if value] )])
+    print("MAX VALUE: ", max_value)
     height = math.ceil((max_height_of_graph / max_value) * math.ceil(max_value))
     # Create array of shape fill with blank spaces
     plot = np.full((height, max_width_of_graph), " ")
@@ -72,7 +73,6 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
     border_bottom_height = len(str(len(pollutant_values))) + 1
     # Adding y-axis values
     for value in y_axis_values:
-        print(value)
         for col in range(len(value)):
             row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height) // max_value) * float(value))
             plot[row, col] = value[col]
@@ -91,6 +91,8 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
             # Validate that this is within the max_width_of_graph otherwise shrink data by making it into days or even weeks
             col = index + border_left_width
             plot[row, col] = 'x'
+        else:
+            print(index, value)
     # Adding the border
     for row in range(0, max_height_of_graph - border_bottom_height):
         plot[row, border_left_width - 1] = '|'
@@ -190,24 +192,11 @@ def get_sites_currently_monitoring_pollutant(monitoring_sites_and_pollutants : d
 # ============================================================================================================================
 
 
-def plot_pollutant_on_graph(monitoring_sites_and_pollutants: dict) -> None:
+def plot_past_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) -> None:
     # Validate site code - USER INPUT
     site_code_inp = 'BG1'#get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants.keys(), True)
     # Validate pollutant is available at site - USER INPUT
     pollutant_to_plot = 'NO2'#get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants[site_code_inp].keys(), False)
-    # Validate number of weeks to plot - USER INPUT
-    
-    is_valid_num_of_weeks = False
-    num_of_weeks = 25
-    '''""
-    while not is_valid_num_of_weeks:
-        num_of_weeks = input("Enter how many weeks of data you would like to plot (1 to 25).\t")
-        if num_of_weeks.isnumeric() and int(num_of_weeks) <= 25 and int(num_of_weeks) > 0:
-            is_valid_num_of_weeks = True
-            num_of_weeks = int(num_of_weeks)
-        else:
-            print(f"Input ({num_of_weeks}) is invalid.")'''
-
     # Validate start_date - ensure that start_date + datetime.timedelta(days=day_difference) is within both bounds (of when the monitoring started or finished - be careful with empty string for "@MonitoringFinished")  - USER INPUT
     when_pollutant_was_last_monitored = None
     if monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'] == "":
@@ -223,7 +212,7 @@ def plot_pollutant_on_graph(monitoring_sites_and_pollutants: dict) -> None:
         try:
             if re.match(regex_pattern, start_date): #if the input is in the correct form.
                 start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
-                end_date = start_date + datetime.timedelta(days= num_of_weeks * 7)
+                end_date = start_date + datetime.timedelta(days=7)
                 if start_date < when_pollutant_was_last_monitored and end_date > datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date'][:10], '%Y-%m-%d').date():
                     is_valid_start_date = True
             else:
@@ -234,30 +223,11 @@ def plot_pollutant_on_graph(monitoring_sites_and_pollutants: dict) -> None:
     
     # Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
     response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"]
-    pollutant_values = []
-    max_width_of_graph = 180
-    if len(response_data) > max_width_of_graph: #Then group data into days
-        index = 0
-        
-        values_in_a_day = []
-        for index in range(len(response_data)):
-                current_day = response_data[index]["@MeasurementDateGMT"][:10]
-                if response_data[index]["@Value"] != "": #If not None...
-                    values_in_a_day.append(float(response_data[index]["@Value"]))
-                if index == len(response_data) -1 or response_data[index + 1]["@MeasurementDateGMT"][:10] != current_day:
-                    #Calculate mean value
-                    print(f"Day values: {values_in_a_day}")
-                    if len(values_in_a_day) > 0:
-                        pollutant_values.append(meannvalue(values_in_a_day))
-                    else:
-                        pollutant_values.append(None)
-                    values_in_a_day = []
-    else:
-        pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data]
-    graph = generate_graph(pollutant_values, max_width_of_graph)
+    pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data]
+    graph = generate_graph(pollutant_values, 180)
     print_graph(graph)
 
-plot_pollutant_on_graph(get_monitoring_sites_and_species())
+plot_past_week_of_pollutant_data_on_graph(get_monitoring_sites_and_species())
 # Test at the beginning of an hour
 def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
     try:
