@@ -85,13 +85,14 @@ def validate_filename(filename : str) -> None:
 
     Args:
         filename (str): The filename to validate."""
-    if ['<', '>', ':', '"', "/", '\\', '|', '?', '*'] in filename:
-        raise ValueError("Invalid characters in the filename.")
+    
     for c in filename:
+        if c in ['<', '>', ':', '"', "/", '\\', '|', '?', '*']:
+            raise ValueError("Invalid characters in the filename.")
         if ord(c) >= 0 and ord(c) <= 31: #if the ASCII value of the character is between 0 and 31, it is invalid
             raise ValueError("Invalid characters in the filename.")
     if not isinstance(filename, str):
-        raise ValueError("The filename must be a string.")
+        raise TypeError("The filename must be a string.")
 
 def validate_colour_thresholds(lower : int, upper : int) -> None:
     """Validates the upper and lower thresholds which determine if a pixel is deemed to be a certain colour.
@@ -103,8 +104,8 @@ def validate_colour_thresholds(lower : int, upper : int) -> None:
         ValueError: _description_
         ValueError: _description_"""
     if not isinstance(upper, int) or not isinstance(lower, int):
-        raise ValueError("The threshold must be integers.")
-    if (upper < 0 and upper > 255) or (lower < 0 and lower > 255):
+        raise TypeError("The threshold must be integers.")
+    if (upper < 0 or upper > 255) or (lower < 0 or lower > 255):
         raise ValueError("The upper_threshold and/or lower_threshold arguments are not in the correct range (0 - 255)")
     
 def find_red_pixels(map_filename : str, upper_threshold : int = 100, lower_threshold : int = 50) -> np.ndarray:
@@ -216,7 +217,7 @@ def validate_2D_array(inp : any) -> None:
         inp = np.array(inp, dtype = int) #If float values are parsed in IMG, then they will be truncated.
     if not len(inp.shape) == 2: #length of the tuple must be 2 (for a 2D array)
         raise ValueError("The argument IMG must be a 2D array")
-        
+#validate_2D_array([1,2,3,4])        
 def detect_connected_components(IMG : ArrayLike) -> np.ndarray:#2 pixels (p, q) are connected if q is in the set of N8(p)
     """Returns all 8-connected components in the image, defined in a 2D array, and saves the connected components and sizes to a text file.
 
