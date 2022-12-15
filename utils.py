@@ -19,8 +19,7 @@ def sumvalues(values: list):
         if type(item) in [int, float, numpy.float64]:
             total += item
         else:
-            raise TypeError(
-                "An element in the list/array has an incorrect type.")
+            raise TypeError("An element in the list/array has an incorrect type.")
 
     return total
 
@@ -49,8 +48,7 @@ def maxvalue(values: list):
                     maxVal = values[i]
                     maxValIndex = i
             else:
-                raise TypeError(
-                    "An element in the list/array has an incorrect type.")
+                raise TypeError("An element in the list/array has an incorrect type.")
         return maxValIndex
     else:
         raise Exception("The List is empty so there is not a maximum value")

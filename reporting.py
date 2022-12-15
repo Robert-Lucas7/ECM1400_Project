@@ -63,8 +63,7 @@ def get_daily_averages(data, average_func, monitoring_station: str, pollutant: s
             for i in range(365):
                 hourly_values = []
                 for j in range(24):
-                    value = data[monitoring_station][i *
-                                                        24 + j][1][pollutant] # i * 24 + j is the index of the current pollutant value as there are 24 data entries per day.
+                    value = data[monitoring_station][i * 24 + j][1][pollutant] # i * 24 + j is the index of the current pollutant value as there are 24 data entries per day.
                     if value != "No data":
                         hourly_values.append(float(value)) #Parse the value as a float (so the average function can be applied to the list) and add to the list of hourly values.
                 average_value_for_day = average_func(hourly_values)
@@ -118,8 +117,7 @@ def daily_median(data, monitoring_station: str, pollutant: str) -> list:
         list:  list of the median values of a pollutant for each day"""
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            list_of_daily_medians = get_daily_averages(
-                data, find_median, monitoring_station, pollutant)
+            list_of_daily_medians = get_daily_averages(data, find_median, monitoring_station, pollutant)
             return list_of_daily_medians
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
