@@ -3,6 +3,7 @@
 # the signatures determined by the project specification
 
 
+from types import NoneType
 import numpy
 
 
@@ -36,16 +37,19 @@ def maxvalue(values: list) -> int:
     """
     # Check if the list is empty
     if len(values) != 0:
-
+        maxVal = None #These will be changed as there will be at least 1 value in the list.
+        maxValIndex = 0
         for i in range(0, len(values)):
             # Validate element data type
             if type(values[i]) in [int, float]:
-                if i == 0:
-                    maxValIndex = 0  # As this will be the highest value at the start
-                    maxVal = values[0]
-                if values[i] > maxVal:
-                    maxVal = values[i]
-                    maxValIndex = i
+                    if not maxVal:
+                        maxVal = values[i]
+                        maxValIndex = i
+                    elif values[i] > maxVal:
+                        maxVal = values[i]
+                        maxValIndex = i
+            elif type(values[i]) == NoneType:
+                pass
             else:
                 raise TypeError("An element in the list/array has an incorrect type.")
         return maxValIndex

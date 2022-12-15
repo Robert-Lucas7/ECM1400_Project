@@ -18,7 +18,6 @@ from time import sleep
 import re
 # ================================================ Helper Functions ==========================================================
 
-
 def get_monitoring_sites_and_species() -> dict:
     """Returns information about which pollutants are monitored at each monitoring station and for what period of time
 
@@ -36,8 +35,7 @@ def get_monitoring_sites_and_species() -> dict:
             for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
     return site_codes_and_pollutants_monitored
 
-
-def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_height_of_graph: int = 40, num_on_y_axis=5) -> np.ndarray:
+def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_height_of_graph: int = 40, num_on_y_axis = 5) -> np.ndarray:
     """Creates a graph represented as a 2D NumPy array that plots the value of a pollutant at a monitoring station.
 
     Args:
@@ -47,12 +45,11 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
         num_on_y_axis (int, optional): The number of values shown on the y-axis (excluding zero). Defaults to 5.
 
     Returns:
-        np.ndarray: A 2D array that represents a graph.
-    """
-    print("POLLUTANT VALUES: ",pollutant_values)
+        np.ndarray: A 2D array that represents a graph."""
     # Need to find the max and min values to ensure the correct scaling
     # Finding the max pollutant value
-    max_value = float(pollutant_values[maxvalue( [value for value in pollutant_values if value] )])
+    print("POLLUTANT VALUES: ", pollutant_values)
+    max_value = float(pollutant_values[maxvalue( pollutant_values )])
     print("MAX VALUE: ", max_value)
     height = math.ceil((max_height_of_graph / max_value) * math.ceil(max_value))
     # Create array of shape fill with blank spaces
@@ -73,8 +70,9 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
     border_bottom_height = len(str(len(pollutant_values))) + 1
     # Adding y-axis values
     for value in y_axis_values:
+        print("VALUE: ",value)
         for col in range(len(value)):
-            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height) // max_value) * float(value))
+            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height) / max_value) * float(value))
             plot[row, col] = value[col]
     # Adding x-axis values
     for i in range(len(pollutant_values)):
@@ -86,13 +84,12 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
     # Plotting data points
     for index, value in enumerate(pollutant_values):
         if value != None:
-            row = max_height_of_graph - border_bottom_height - \
-                round(((max_height_of_graph - border_bottom_height)//max_value) * value)
+            row = max_height_of_graph - border_bottom_height - round(((max_height_of_graph - border_bottom_height)/max_value) * value)
             # Validate that this is within the max_width_of_graph otherwise shrink data by making it into days or even weeks
             col = index + border_left_width
             plot[row, col] = 'x'
-        else:
-            print(index, value)
+        #else:
+        #    print(index, value)
     # Adding the border
     for row in range(0, max_height_of_graph - border_bottom_height):
         plot[row, border_left_width - 1] = '|'
@@ -100,14 +97,12 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
         plot[max_height_of_graph - border_bottom_height, col] = '-'
     return plot
 
-
 def print_graph(graph: np.ndarray) -> None:
     for row in range(graph.shape[0]):
         string = ""
         for col in range(graph.shape[1]):
             string += graph[row, col]
         print(string)
-
 
 def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, end_date=None):
     """
@@ -131,10 +126,8 @@ def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, 
         start_date=start_date,
         end_date=end_date
     )
-    #print("URL: " + url)
     res = requests.get(url)
     return res.json()
-
 
 def get_user_input_for_monitoring_site_or_pollutant(valid_sites_or_pollutants: list[str], is_getting_site : bool) -> str:
     """Gets and returns a user's input for the monitoring site code.
@@ -164,6 +157,9 @@ def get_most_recent_data_from_API_data(site_code : str, pollutant : str) -> dict
     api_data = get_live_data_from_api(site_code, pollutant)["RawAQData"]["Data"]
     is_most_recent_value = False
     most_recent_value_and_time = {}
+
+    print(json.dumps(api_data, indent = 4))
+
     for d in reversed(api_data):
         if d["@Value"] != "":
             most_recent_value_and_time['time'] = d["@MeasurementDateGMT"]
@@ -203,7 +199,7 @@ def plot_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) 
         if monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'] == "":
             when_pollutant_was_last_monitored = datetime.date.today()
         else:
-            when_pollutant_was_last_monitored = datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'], '%Y-%m-%d')
+            when_pollutant_was_last_monitored = datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'][:10], '%Y-%m-%d').date()
         print(f"{pollutant_to_plot} at {site_code_inp} was monitored from {monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date']} to {str(when_pollutant_was_last_monitored)}")
         is_valid_start_date = False
         start_date = ""
@@ -214,28 +210,31 @@ def plot_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) 
                 if re.match(regex_pattern, start_date): #if the input is in the correct form.
                     start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
                     end_date = start_date + datetime.timedelta(days=7)
-                    if start_date < when_pollutant_was_last_monitored and end_date > datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date'][:10], '%Y-%m-%d').date():
+                    if start_date <= when_pollutant_was_last_monitored and end_date > datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date'][:10], '%Y-%m-%d').date():
                         is_valid_start_date = True
                 else:
                     raise ValueError("Date is invalid")
             except ValueError as e:
                 print("Date is invalid")
-                print(e)
         
         # Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
         response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"]
         pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data]
         graph = generate_graph(pollutant_values, 180)
         print_graph(graph)
+    except ValueError as e:
+        if e.args[0] == "The List is empty so there is not a maximum value":
+            print("There is no data to plot in the time frame selected, so returning to the monitoring module menu")
     except Exception as e:
         print("Returning to the monitoring module menu.")
-plot_week_of_pollutant_data_on_graph(get_monitoring_sites_and_species())
+        print(e)
+#plot_week_of_pollutant_data_on_graph(get_monitoring_sites_and_species())
 
 def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
     try:
         
         # Get pollutant and validate - ONLY if they are still monitoring the pollutant - raise exception if the monitoring site has no currently monitored pollutants - USER INPUT
-        valid_pollutants = requests.get("https://api.erg.ic.ac.uk/AirQuality/Information/Species/Json").json()["AirQualitySpecies"]["Species"]
+        valid_pollutants = [d["@SpeciesCode"] for d in requests.get("https://api.erg.ic.ac.uk/AirQuality/Information/Species/Json").json()["AirQualitySpecies"]["Species"]]
         pollutant = get_user_input_for_monitoring_site_or_pollutant( valid_pollutants, False)#"NO2"
         # Get site_code and validate - USER INPUT
         sites_currently_monitoring_pollutant = get_sites_currently_monitoring_pollutant(monitoring_sites_and_pollutants, pollutant)
@@ -243,18 +242,11 @@ def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
     
         print("To stop and return to the main menu press 'Ctrl + c'")
         prev_time = -1  # This is not possible
-        current_time_and_value = {
-            'time': None,
-            'value': None
-        }
         repeat = True
         while repeat:
-            response_data = get_live_data_from_api(site_code, pollutant)["RawAQData"]["Data"]
-            for i in range(len(response_data) - 1, 0, -1):
-                if response_data[i]["@Value"] != "":
-                    current_time_and_value['time'] = response_data[i]["@MeasurementDateGMT"]
-                    current_time_and_value['value'] = response_data[i]["@Value"]
-            if current_time_and_value == {'time' : None,'value' : None}:
+            #response_data = get_live_data_from_api(site_code, pollutant)["RawAQData"]["Data"]
+            current_time_and_value = get_most_recent_data_from_API_data(site_code, pollutant)
+            if current_time_and_value == {'time' : 'N/A','value' : 'N/A'}:
                 print(f"There is currently no recent data available for {pollutant} at {site_code}. Returning to the main menu.")
                 repeat = False
             elif prev_time != current_time_and_value:
@@ -267,7 +259,7 @@ def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
     except Exception as e:
         print(f"Something went wrong - returning to the monitoring module menu. ({e})")
 
-
+display_most_recent_pollutant_data(get_monitoring_sites_and_species())
 def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants: dict) -> None:
     try:
         # Get a valid pollutant - USER INPUT
@@ -321,127 +313,3 @@ def get_pollution_values_at_monitoring_site(monitoring_sites_and_pollutants: dic
             print("Quitting - returning to the main menu")
     except Exception as e:
         print(f"Something went wrong - returning to the main menu. ({e})")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def get_info_about_pollutants_at_site(site_codes_and_pollutants: dict, site_code) -> None:
-
-    print(f"Pollutants monitored at site: {site_code}")
-    print(f"{'Pollutant' : <20}{'Start date' : <25}{'End date' : <25}")
-    for pollutant, pollutant_info in site_codes_and_pollutants[site_code].items():
-        print(
-            f"{pollutant : <20}{pollutant_info['start_date'] : <25}{pollutant_info['end_date'] : <25}")
-
-
-def plot_pollutants_on_same_graph(site_codes_and_pollutants: dict, start_date=None, end_date=None) -> None:
-
-    try:
-        # Get site code here
-        '''
-        valid_site_code = False
-        while not valid_site_code:
-            site_code_inp = input("Enter the site code you would like to plot the pollutants for.\n")
-            if site_code_inp.upper() not in site_codes_and_pollutants.keys():
-                print("Site code is invalid.")
-            else:
-                valid_site_code = True
-        '''
-        site_code_inp = "VS1"  # Testing
-        # Get pollutants to plot here
-        #site_code = get_user_input_for_monitoring_site(site_codes_and_pollutants)
-        get_info_about_pollutants_at_site(
-            site_codes_and_pollutants, site_code_inp)
-        stop_adding_pollutants = False
-        pollutants_to_plot = ["NO2"]  # TESTING
-        '''pollutants_to_plot = []
-        while not stop_adding_pollutants:
-            
-            #print(
-            #    f"The pollutant options are: {', '.join(site_codes_and_pollutants[site_code_inp].keys())}")
-            pollutant_inp = input(
-                "Enter a pollutant code to plot on the graph (or enter 'q'/'Q' to stop adding pollutants)")
-
-            if pollutant_inp.upper() == 'Q':
-                stop_adding_pollutants = True
-            elif pollutant_inp.upper() not in site_codes_and_pollutants[site_code_inp].keys():
-                print(f"Pollutant not available at site code {site_code_inp}")
-            elif pollutant_inp not in pollutants_to_plot:
-                # "VS1" : [CO, NO2, O3, PM10]
-                pollutants_to_plot.append(pollutant_inp.upper())
-            else:
-                print(f"Pollutant {pollutant_inp} is already being plotted.")
-
-            # All possible pollutants have been added.
-            if len(pollutants_to_plot) == len(site_codes_and_pollutants[site_code_inp].keys()):
-                stop_adding_pollutants = True
-            print(f"Pollutants to plot: {', '.join(pollutants_to_plot)}")
-'''
-        # Get user input for the time period that they want to plot the graph for:
-        # Options: day, week, 6 months, 1 year
-        time_period_inp = "Week"  # TESTING
-
-        start_date, end_date = get_dates_for_query(
-            time_period_inp, site_codes_and_pollutants, site_code_inp, pollutants_to_plot)
-        for pollutant in pollutants_to_plot:
-            #pollutant_info = site_codes_and_pollutants[site_code_inp][pollutant]
-            pollutant_data = get_live_data_from_api(
-                site_code_inp, pollutant, start_date=start_date, end_date=end_date)  # pollutant_info["end_date"][:10])
-            print(json.dumps(pollutant_data, indent=4))
-    except Exception as e:
-        print(e)
-
-
-# plot_pollutants_on_same_graph(get_monitoring_sites_and_species())
-#print(json.dumps(get_monitoring_sites_and_species(), indent=4))
-
-
-# get_info_about_pollutants_at_site(get_monitoring_sites_and_species())
-
-#get_live_data_from_api("VS1", "CO")
-
-def get_most_recent_pollution_data(site_codes_and_pollutants) -> None:
-    pass
-    #
-
-
-def rm_function_1(*args, **kwargs):
-    """Your documentation goes here"""
-    # Your code goes here
-
-
-def rm_function_2(*args, **kwargs):
-    """Your documentation goes here"""
-    # Your code goes here
-
-
-def rm_function_3(*args, **kwargs):
-    """Your documentation goes here"""
-    # Your code goes here
-
-
-def rm_function_4(*args, **kwargs):
-    """Your documentation goes here"""
-    # Your code goes here
