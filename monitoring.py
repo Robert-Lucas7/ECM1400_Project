@@ -192,43 +192,45 @@ def get_sites_currently_monitoring_pollutant(monitoring_sites_and_pollutants : d
 # ============================================================================================================================
 
 
-def plot_past_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) -> None:
-    # Validate site code - USER INPUT
-    site_code_inp = 'BG1'#get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants.keys(), True)
-    # Validate pollutant is available at site - USER INPUT
-    pollutant_to_plot = 'NO2'#get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants[site_code_inp].keys(), False)
-    # Validate start_date - ensure that start_date + datetime.timedelta(days=day_difference) is within both bounds (of when the monitoring started or finished - be careful with empty string for "@MonitoringFinished")  - USER INPUT
-    when_pollutant_was_last_monitored = None
-    if monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'] == "":
-        when_pollutant_was_last_monitored = datetime.date.today()
-    else:
-        when_pollutant_was_last_monitored = datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'], '%Y-%m-%d')
-    print(f"{pollutant_to_plot} at {site_code_inp} was monitored from {monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date']} to {str(when_pollutant_was_last_monitored)}")
-    is_valid_start_date = False
-    start_date = ""
-    regex_pattern = "(199[3-9]|20(0|1)[0-9]|202[0-2])-(0[1-9]|1[0-2])-(0[1-9]|[1-2][1-9]|3[0-1])" #Possible regex pattern for dates (is wrong for some months due to the number of days)
-    while not is_valid_start_date:
-        start_date = input("Enter the start date in the form YYYY-MM-DD (date closer to the present) to plot the data from.\t")
-        try:
-            if re.match(regex_pattern, start_date): #if the input is in the correct form.
-                start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
-                end_date = start_date + datetime.timedelta(days=7)
-                if start_date < when_pollutant_was_last_monitored and end_date > datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date'][:10], '%Y-%m-%d').date():
-                    is_valid_start_date = True
-            else:
-                raise ValueError("Date is invalid")
-        except ValueError as e:
-            print("Date is invalid")
-            print(e)
-    
-    # Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
-    response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"]
-    pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data]
-    graph = generate_graph(pollutant_values, 180)
-    print_graph(graph)
+def plot_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) -> None:
+    try:    
+        # Validate site code - USER INPUT
+        site_code_inp = get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants.keys(), True)
+        # Validate pollutant is available at site - USER INPUT
+        pollutant_to_plot = get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants[site_code_inp].keys(), False)
+        # Validate start_date - ensure that start_date + datetime.timedelta(days=day_difference) is within both bounds (of when the monitoring started or finished - be careful with empty string for "@MonitoringFinished")  - USER INPUT
+        when_pollutant_was_last_monitored = None
+        if monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'] == "":
+            when_pollutant_was_last_monitored = datetime.date.today()
+        else:
+            when_pollutant_was_last_monitored = datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['end_date'], '%Y-%m-%d')
+        print(f"{pollutant_to_plot} at {site_code_inp} was monitored from {monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date']} to {str(when_pollutant_was_last_monitored)}")
+        is_valid_start_date = False
+        start_date = ""
+        regex_pattern = "(199[3-9]|20(0|1)[0-9]|202[0-2])-(0[1-9]|1[0-2])-(0[1-9]|[1-2][1-9]|3[0-1])" #Possible regex pattern for dates (is wrong for some months due to the number of days)
+        while not is_valid_start_date:
+            start_date = input("Enter the start date in the form YYYY-MM-DD (date closer to the present) to plot the data from.\t")
+            try:
+                if re.match(regex_pattern, start_date): #if the input is in the correct form.
+                    start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+                    end_date = start_date + datetime.timedelta(days=7)
+                    if start_date < when_pollutant_was_last_monitored and end_date > datetime.datetime.strptime(monitoring_sites_and_pollutants[site_code_inp][pollutant_to_plot]['start_date'][:10], '%Y-%m-%d').date():
+                        is_valid_start_date = True
+                else:
+                    raise ValueError("Date is invalid")
+            except ValueError as e:
+                print("Date is invalid")
+                print(e)
+        
+        # Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
+        response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"]
+        pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data]
+        graph = generate_graph(pollutant_values, 180)
+        print_graph(graph)
+    except Exception as e:
+        print("Returning to the monitoring module menu.")
+plot_week_of_pollutant_data_on_graph(get_monitoring_sites_and_species())
 
-plot_past_week_of_pollutant_data_on_graph(get_monitoring_sites_and_species())
-# Test at the beginning of an hour
 def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
     try:
         
@@ -261,9 +263,9 @@ def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
             sleep(5)
 
     except KeyboardInterrupt:
-        print("Returning to main menu")
+        print("Returning to monitoring module menu")
     except Exception as e:
-        print(f"Something went wrong - returning to the main menu. {e}")
+        print(f"Something went wrong - returning to the monitoring module menu. ({e})")
 
 
 def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants: dict) -> None:
@@ -297,7 +299,7 @@ def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants:
         if e.args == "Quit selected":
             print("Quitting - returning to the main menu.")
     except Exception as e:
-        print(f"Something went wrong - returning to the main menu. {e}")
+        print(f"Something went wrong - returning to the main menu. ({e})")
 
 #comparison_of_pollutant_at_monitoring_sites(get_monitoring_sites_and_species())
 
@@ -318,7 +320,7 @@ def get_pollution_values_at_monitoring_site(monitoring_sites_and_pollutants: dic
         if e.args == "Quit selected":
             print("Quitting - returning to the main menu")
     except Exception as e:
-        print(f"Something went wrong - returning to the main menu. {e}")
+        print(f"Something went wrong - returning to the main menu. ({e})")
 
 
 
@@ -342,34 +344,7 @@ def get_pollution_values_at_monitoring_site(monitoring_sites_and_pollutants: dic
 
 
 
-def get_dates_for_query(time_period: str, site_codes_and_pollutants: dict, site_code, pollutants, num_weeks: int = 1) -> tuple[datetime.date, datetime.date]:
-    time_period = time_period.upper()
 
-    # USER ENTERS THE START DATE HERE
-    # datetime.date.today()   ============== USER WILL ENTER AN ACTUAL DATE HERE ==================
-    start_date = datetime.datetime.strptime(
-        site_codes_and_pollutants[site_code]["CO"]["start_date"][:10], "%Y-%m-%d").date()
-    print(start_date)
-    day_difference = -1
-    if time_period == "DAY":
-        day_difference = 1
-    elif time_period == "WEEK":
-        if num_weeks <= 52:
-            day_difference = 7 * num_weeks
-        '''else:  # ====================== DO VALIDATION AT A DIFFERENT LOCATION IN THE CODE =============================================
-            raise ValueError(
-                "THe maximum number of weeks is 52 from the current date.")'''
-
-    elif time_period == "YEAR":
-        day_difference = 52 * 7
-    end_date = start_date + datetime.timedelta(days=day_difference)
-    # NOTIFY THE USER IF THEIR RANGE OF DATES IS WHEN THE POLLUTANT ISN'T MEASURED/ Monitored
-    for pollutant in pollutants:
-        if end_date < datetime.datetime.strptime(site_codes_and_pollutants[site_code][pollutant]["start_date"][:10], "%Y-%m-%d").date() or start_date > datetime.datetime.strptime(site_codes_and_pollutants[site_code][pollutant]["end_date"][:10], "%Y-%m-%d").date():
-            raise ValueError(
-                "The date range selected is outside of the range that the pollutants were monitored for")
-
-    return start_date, end_date
 
 
 def get_info_about_pollutants_at_site(site_codes_and_pollutants: dict, site_code) -> None:

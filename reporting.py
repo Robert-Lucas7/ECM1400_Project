@@ -5,7 +5,7 @@ from utils import *
 import numpy as np
 import copy #https://docs.python.org/3/library/copy.html
 
-def get_data(monitoring_station_files : list[str]) -> dict[str,object]:
+def get_data(monitoring_station_files : list[str] = ["Harlington", "Marylebone Road", "N Kensington"]) -> dict[str,object]:
     """Returns a dictionary object containing the data from the files specified in the list 'monitoring_station_files'.
     
     Args:
@@ -24,24 +24,31 @@ def get_data(monitoring_station_files : list[str]) -> dict[str,object]:
             ]
         "station_1" : [tuples in form (date_and_hourly_value, pollutants_and_values dictionary)]
     }"""
-    data_dict = {}
-    for station in monitoring_station_files:
-        fileName = f"Pollution-London {station}.csv"
-        lines = open(f"./data/{fileName}", 'r').readlines()
-        # intialises an uninitialised array of values.
-        station_list = np.empty(len(lines) - 1, dtype=object)
-        for index, line in enumerate(lines):# should use start = 
-            if index != 0:  # if it isn't the first line where the column headers are specified.
-                sections = line.rstrip().split(',')
+    try:
+        data_dict = {}
+        for station in monitoring_station_files:
+            fileName = f"Pollution-London {station}.csv"
+            lines = open(f"./data/{fileName}", 'r').readlines()
+            # intialises an uninitialised array of values.
+            station_list = np.empty(len(lines) - 1, dtype=object)
+            for index, line in enumerate(lines):# should use start = 
+                if index != 0:  # if it isn't the first line where the column headers are specified.
+                    sections = line.rstrip().split(',')
 
-                station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
-                    "no": sections[2],
-                    "pm10": sections[3],
-                    "pm25": sections[4]
-                })
-        data_dict[station] = station_list
+                    station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
+                        "no": sections[2],
+                        "pm10": sections[3],
+                        "pm25": sections[4]
+                    })
+            data_dict[station] = station_list
 
-    return data_dict
+        return data_dict
+    except FileNotFoundError:
+        print("File not found.")
+        return None
+    except Exception as e:
+        print(f"Something went wrong ({e})")
+        return None
 # Higher order function that takes in the average function specified in utils.py
 def get_daily_averages(data, average_func, monitoring_station: str, pollutant: str) -> list:
     """Returns a list of daily averages (mean or median) over a year (365 days).
@@ -70,8 +77,7 @@ def get_daily_averages(data, average_func, monitoring_station: str, pollutant: s
                 average_daily_values.append(average_value_for_day)
             return average_daily_values
         else:
-            raise ValueError(
-                "Invalid arguments passed (either as monitoring station or pollutant)")
+            raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
@@ -94,13 +100,14 @@ def daily_average(data, monitoring_station: str, pollutant: str) -> list:
     # Validate monitoring_station and pollutant.
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            list_of_daily_means = get_daily_averages(
-                data, meannvalue, monitoring_station, pollutant)
+            list_of_daily_means = get_daily_averages(data, meannvalue, monitoring_station, pollutant)
             return list_of_daily_means
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
+    except ValueError:
+        print("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(e)
+        print(f"Something went wrong ({e})")
 
 
 def daily_median(data, monitoring_station: str, pollutant: str) -> list:
@@ -122,7 +129,7 @@ def daily_median(data, monitoring_station: str, pollutant: str) -> list:
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(e)
+        print(f"Something went wrong ({e})")
 
 
 def hourly_average(data, monitoring_station : str, pollutant : str) -> list:
@@ -152,12 +159,11 @@ def hourly_average(data, monitoring_station : str, pollutant : str) -> list:
             return mean_hour_data
 
         else:
-            raise ValueError(
-                "Invalid arguments passed (either as monitoring station or pollutant)")
+            raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(str(e))
+        print(f"Something went wrong ({e})")
 
 
 def monthly_average(data, monitoring_station : str, pollutant : str) -> list :
@@ -192,15 +198,12 @@ def monthly_average(data, monitoring_station : str, pollutant : str) -> list :
                     index += 1
                 monthly_average_data[i] = meannvalue(normal_monthly_data)
             return monthly_average_data
-
-
         else:
-            raise ValueError(
-                "Invalid arguments passed (either as monitoring station or pollutant)")
+            raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(str(e))
+        print(f"Something went wrong ({e})")
 
 
 def peak_hour_date(data : dict[str, object], date : str, monitoring_station : str, pollutant : str) -> tuple:
@@ -243,7 +246,7 @@ def peak_hour_date(data : dict[str, object], date : str, monitoring_station : st
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(e)
+        print(f"Something went wrong ({e})")
     
 
 
@@ -271,7 +274,7 @@ def count_missing_data(data : dict[str, object],  monitoring_station : str, poll
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(e)
+        print(f"Something went wrong ({e})")
 
 
 def fill_missing_data(data : dict[str, object], new_value : float,  monitoring_station : str, pollutant : str) -> dict[str,  object]:
@@ -298,4 +301,4 @@ def fill_missing_data(data : dict[str, object], new_value : float,  monitoring_s
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(e)
+        print(f"Something went wrong ({e})")
