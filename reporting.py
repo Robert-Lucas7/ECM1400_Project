@@ -133,7 +133,7 @@ def daily_median(data, monitoring_station: str, pollutant: str) -> list:
 
 
 def hourly_average(data, monitoring_station : str, pollutant : str) -> list:
-    """Returns the mean values of the pollutant for each hour in the day (24 values).
+    """Returns a list of the mean values of the pollutant for each hour in the day (24 values).
 
     Args:
         data (dict[str, object]): the pollution data returned from get_data()

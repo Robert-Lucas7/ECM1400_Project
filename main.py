@@ -5,12 +5,11 @@ from reporting import *
 from monitoring import get_monitoring_sites_and_species, plot_week_of_pollutant_data_on_graph, display_most_recent_pollutant_data, comparison_of_pollutant_at_monitoring_sites, get_pollution_values_at_monitoring_site
 from intelligence import *
 import numpy as np
+import datetime
 
 def main_menu() -> None:
     """Prints the options of the different modules and takes an input to choose which module is to be accessed.
     """
-    
-
     # Validating the input
     repeat_again = True
     while repeat_again:
@@ -107,13 +106,37 @@ def reporting_menu() -> None:
                         print(f"The daily medians for {pollutant} at {monitoringStation}:")
                         print(f"{','.join(daily_medians)}")
                 elif optionInp == "HA":
-                    hourly_average(data, monitoringStation, pollutant)
+                    hourly_averages = hourly_average(data, monitoringStation, pollutant)
+                    print(f"The hourly averages of {pollutant} at {monitoringStation} are:")
+                    print(f"{'Hour' : <25}{'Average value' : <25}")
+                    for index, average in enumerate(hourly_average, start= 1):
+                        print(f"{index : 03d}:00:00 - {average : <25}")
                 elif optionInp == "MA":
-                    monthly_average(data, monitoringStation, pollutant)
+                    monthly_averages = monthly_average(data, monitoringStation, pollutant)
+                    print(f"The monthly averages of {pollutant} at {monitoringStation} are:")
+                    print(f"{'Month' : <25}{'Average Value' : <25}")
+                    for index, average in enumerate(monthly_averages, start = 1):
+                        print(f"{index : 03d}{average : <25}")
                 elif optionInp == "PHD":
-                    peak_hour_date(data, monitoringStation, pollutant)
+                    #Get and validate date - must be year = 2021
+                    is_valid_date = False
+                    date = ""
+                    while not is_valid_date:
+                        date = input("Enter a valid date in 2021 in the form YYYY-MM-DD")
+                        try:
+                            converted_date = datetime.datetime.strptime(date, '%Y-%m-%d')
+                            if converted_date == 2021:
+                                is_valid_date = True
+                            else:
+                                print("The date must be in the year 2021")
+                        except Exception:
+                            print("The date must be in the form YYYY-MM-DD")
+
+                    peak_hour = peak_hour_date(data, monitoringStation, pollutant)
+                    print(f"The peak pollution of {pollutant} occured at {peak_hour[0]} with a value of {peak_hour[1]} on the {date}")
                 elif optionInp == "CMD":
-                    count_missing_data(data, monitoringStation, pollutant)
+                    count = count_missing_data(data, monitoringStation, pollutant)
+                    print(f"There are {count} missing data entries for {pollutant} at {monitoringStation}")
                 elif optionInp == "FMD":
                     copy_of_data = fill_missing_data(data, monitoringStation, pollutant)
         else:
@@ -148,7 +171,7 @@ def monitoring_menu():
 
 def intelligence_menu() -> None:
     """Displays the options for the intelligence module."""
-    repeat_again = True #=========================================== CHANGE ALL invalidInput's to repeat_again as it is more descriptive of its function. ==================
+    repeat_again = True
     while repeat_again:
         print("R - Find red pixels in the image specified")
         print("C - Find cyan pixels in the image specified")
@@ -187,7 +210,7 @@ def intelligence_menu() -> None:
 
 
 def about() -> None:
-    """Prints the module code ECM1400 and a 6-digit candidate number"""
+    """Prints the module code, ECM1400, and a 6-digit candidate number"""
     print("ECM1400 250578")
 
 def quit() -> None:

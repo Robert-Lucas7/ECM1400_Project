@@ -1,25 +1,14 @@
-# This is a template.
-# You should modify the functions below to match
-# the signatures determined by the project specification.
-#
-# This module will access data from the LondonAir Application Programming Interface (API)
-# The API provides access to data to monitoring stations.
-#
-# You can access the API documentation here http://api.erg.ic.ac.uk/AirQuality/help
-#
-import json
 import requests
 import datetime
-from matplotlib import pyplot as mat_plot
 import numpy as np
-from utils import maxvalue, meannvalue
+from utils import maxvalue
 import math
 from time import sleep
 import re
 # ================================================ Helper Functions ==========================================================
 
 def get_monitoring_sites_and_species() -> dict:
-    """Returns information about which pollutants are monitored at each monitoring station and for what period of time
+    """Returns information about which pollutants are monitored at each monitoring station and the dates they were first monitored and last monitored.
 
     Returns:
         dict: dictionary containing the monitoring site codes as keys and a nested dictionary of pollutants (and their information) as the values."""
@@ -35,21 +24,22 @@ def get_monitoring_sites_and_species() -> dict:
             for monitoring_site_pollutants in (monitoring_site["Species"] if type(monitoring_site["Species"]) == list else [monitoring_site["Species"]])}
     return site_codes_and_pollutants_monitored
 
-def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_height_of_graph: int = 40, num_on_y_axis = 5) -> np.ndarray:
-    """Creates a graph represented as a 2D NumPy array that plots the value of a pollutant at a monitoring station.
+def generate_graph(pollutant_values: list[float], max_height_of_graph: int = 40, num_on_y_axis = 5) -> np.ndarray:
+    """Creates a text-based graph represented as a 2D NumPy array that plots the value of a pollutant at a monitoring station.
 
     Args:
-        datetime_and_value_kvps (list[dict[str, float]]): _description_
-        max_height_of_graph (int, optional): _description_. Defaults to 40.
-        max_width_of_graph (int, optional): _description_. Defaults to 180.
+        pollutant_values (list[float]): The values of a pollutant
+        max_height_of_graph (int, optional): The maximum height of the graph. Defaults to 40.
         num_on_y_axis (int, optional): The number of values shown on the y-axis (excluding zero). Defaults to 5.
 
     Returns:
-        np.ndarray: A 2D array that represents a graph."""
+        np.ndarray: A 2D array representing a graph.
+    """
     # Need to find the max and min values to ensure the correct scaling
     # Finding the max pollutant value
     print("POLLUTANT VALUES: ", pollutant_values)
     max_value = float(pollutant_values[maxvalue( pollutant_values )])
+    max_width_of_graph = 180
     print("MAX VALUE: ", max_value)
     height = math.ceil((max_height_of_graph / max_value) * math.ceil(max_value))
     # Create array of shape fill with blank spaces
@@ -97,13 +87,6 @@ def generate_graph(pollutant_values: list[float],max_width_of_graph: int, max_he
         plot[max_height_of_graph - border_bottom_height, col] = '-'
     return plot
 
-def print_graph(graph: np.ndarray) -> None:
-    for row in range(graph.shape[0]):
-        string = ""
-        for col in range(graph.shape[1]):
-            string += graph[row, col]
-        print(string)
-
 def get_live_data_from_api(site_code='MY1', species_code='NO', start_date=None, end_date=None):
     """
     Return data from the LondonAir API using its AirQuality API. 
@@ -136,7 +119,7 @@ def get_user_input_for_monitoring_site_or_pollutant(valid_sites_or_pollutants: l
         site_codes_and_pollutants (dict): A dictionary containing all valid site codes and their pollutants (with other information)
 
     Raises:
-        ValueError: Is raised if the user enters 'q'/'Q' to quit to the main menu.
+        ValueError: Is raised if the user enters 'q'/'Q'.
 
     Returns:
         str: The monitoring site code"""
@@ -154,12 +137,18 @@ def get_user_input_for_monitoring_site_or_pollutant(valid_sites_or_pollutants: l
     return site_code_inp
 
 def get_most_recent_data_from_API_data(site_code : str, pollutant : str) -> dict:
+    """Returns the most recent pollutant data as a dictionary for a specific site and pollutant.
+
+    Args:
+        site_code (str): The site code representing the monitoring site.
+        pollutant (str): The code for the pollutant.
+
+    Returns:
+        dict: The most recent pollutant data as a dictionary with keys of the time and value of the pollutant.
+    """
     api_data = get_live_data_from_api(site_code, pollutant)["RawAQData"]["Data"]
     is_most_recent_value = False
     most_recent_value_and_time = {}
-
-    print(json.dumps(api_data, indent = 4))
-
     for d in reversed(api_data):
         if d["@Value"] != "":
             most_recent_value_and_time['time'] = d["@MeasurementDateGMT"]
@@ -171,24 +160,43 @@ def get_most_recent_data_from_API_data(site_code : str, pollutant : str) -> dict
         most_recent_value_and_time['value'] = 'N/A'
     return most_recent_value_and_time
 
-def display_data_in_table(headings : list[str], data : dict[str, dict[str, str]], spaces_left_justified : int = 25) -> None:
+def display_data_in_table(headings : list[str], data : dict[str, dict], spaces_left_justified : int = 25) -> None:
+    """ Prints the data passed as arguments in a table.
+
+    Args:
+        headings (list[str]): The headings of the table as a list.
+        data (dict[str, dict]): A dictionary containing pollutant or monitoring site data (in the form: {site_or_pollutant: {'time' : time, 'value' : value}})
+        spaces_left_justified (int, optional): How many characters the table contents should be left-justified. Defaults to 25.
+    """
     header = ""
     for heading in headings:
         header += f"{ heading : <spaces_left_justified}"
     print(header)
     for site_or_pollutant, pollutant_info in data.items():
-        print(f"{site_or_pollutant : <spaces_left_justified}{pollutant_info['time'] : <spaces_left_justified}{pollutant_info : <spaces_left_justified}")
+        print(f"{site_or_pollutant : <spaces_left_justified}{pollutant_info['time'] : <spaces_left_justified}{pollutant_info['value'] : <spaces_left_justified}")
 
-def get_sites_currently_monitoring_pollutant(monitoring_sites_and_pollutants : dict, pollutant) -> list[str]:
+def get_sites_currently_monitoring_pollutant(monitoring_sites_and_pollutants : dict, pollutant : str) -> list[str]:
+    """Returns a list of the monitoring stations currently monitoring a pollutant.
+
+    Args:
+        monitoring_sites_and_pollutants (dict): A dictionary containing the monitoring sites and the pollutants that are monitored there (with start and end dates).
+        pollutant (str): A pollutant.
+
+    Returns:
+        list[str]: A list containing all of the monitoring sites currently monitoring the pollutant.
+    """
     sites_currently_monitoring_pollutant = []
     for site, pollutant_dict in monitoring_sites_and_pollutants.items():
         if pollutant_dict.get(pollutant) != None and pollutant_dict[pollutant]["end_date"] == "":  #If the pollutant is a key of pollutant_dict and the pollutant is currently being monitored at the monitoring site. (a key error won't be raised as the 'and' will short circuit)
             sites_currently_monitoring_pollutant.append(site)
     return sites_currently_monitoring_pollutant
 # ============================================================================================================================
-
-
+# ================================================ 4 main functions ==========================================================
 def plot_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) -> None:
+    """Prints a graph of a week of pollutant data at a monitoring site for a particular pollutant and saves it to a text file called 'graph-of-{pollutant}-{date-beginning}.txt'.
+
+    Args:
+        monitoring_sites_and_pollutants (dict): A dictionary containing the monitoring sites and pollutants monitored there (with start and end dates)."""
     try:    
         # Validate site code - USER INPUT
         site_code_inp = get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants.keys(), True)
@@ -220,17 +228,26 @@ def plot_week_of_pollutant_data_on_graph(monitoring_sites_and_pollutants: dict) 
         # Validate that there is actually data to plot - raise an exception if there is no data to plot and just inform user (print to terminal) if there is just some missing data
         response_data = get_live_data_from_api(site_code_inp, pollutant_to_plot, start_date, end_date)["RawAQData"]["Data"]
         pollutant_values = [float(d["@Value"]) if d["@Value"] != "" else None for d in response_data]
-        graph = generate_graph(pollutant_values, 180)
-        print_graph(graph)
+        graph = generate_graph(pollutant_values)
+        #Prints the graph to the terminal
+        for row in range(graph.shape[0]):
+            string = ""
+            for col in range(graph.shape[1]):
+                string += graph[row, col]
+            print(string)
+
     except ValueError as e:
         if e.args[0] == "The List is empty so there is not a maximum value":
             print("There is no data to plot in the time frame selected, so returning to the monitoring module menu")
     except Exception as e:
         print("Returning to the monitoring module menu.")
         print(e)
-#plot_week_of_pollutant_data_on_graph(get_monitoring_sites_and_species())
 
-def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
+def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict) -> None:
+    """Prints the most recent pollutant data to the terminal and refreshes this value when new data is available.
+
+    Args:
+        monitoring_sites_and_pollutants (dict): A dictionary containing the monitoring sites and pollutants monitored there (with start and end dates)."""
     try:
         
         # Get pollutant and validate - ONLY if they are still monitoring the pollutant - raise exception if the monitoring site has no currently monitored pollutants - USER INPUT
@@ -259,8 +276,11 @@ def display_most_recent_pollutant_data(monitoring_sites_and_pollutants: dict):
     except Exception as e:
         print(f"Something went wrong - returning to the monitoring module menu. ({e})")
 
-display_most_recent_pollutant_data(get_monitoring_sites_and_species())
 def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants: dict) -> None:
+    """Shows the most recent value of a specific pollutant at different monitoring sites ('N/A' if no recent pollutant data is available).
+
+    Args:
+        monitoring_sites_and_pollutants (dict): A dictionary containing the monitoring sites and pollutants monitored there (with start and end dates)."""
     try:
         # Get a valid pollutant - USER INPUT
         # /Information/Species/Json endpoint to get info about the commonly monitored species.
@@ -293,10 +313,11 @@ def comparison_of_pollutant_at_monitoring_sites(monitoring_sites_and_pollutants:
     except Exception as e:
         print(f"Something went wrong - returning to the main menu. ({e})")
 
-#comparison_of_pollutant_at_monitoring_sites(get_monitoring_sites_and_species())
-
-
 def get_pollution_values_at_monitoring_site(monitoring_sites_and_pollutants: dict) -> None:
+    """Shows the most recent pollutant data for a specific monitoring site ('N/A' if no recent pollutant data is available).
+
+    Args:
+        monitoring_sites_and_pollutants (dict): A dictionary containing the monitoring sites and pollutants monitored there (with start and end dates)."""
     # Get monitoring site to get current values - USER INPUT
     try:
         site_code = get_user_input_for_monitoring_site_or_pollutant(monitoring_sites_and_pollutants.keys(), True)
@@ -313,3 +334,4 @@ def get_pollution_values_at_monitoring_site(monitoring_sites_and_pollutants: dic
             print("Quitting - returning to the main menu")
     except Exception as e:
         print(f"Something went wrong - returning to the main menu. ({e})")
+# =============================================================================================================================

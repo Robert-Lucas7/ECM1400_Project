@@ -329,4 +329,4 @@ def detect_connected_components_sorted(MARK : ArrayLike ) -> None: #Finds connec
         for col in range(MARK.shape[1]):
             if MARK[row, col] in two_biggest_components:
                 two_biggest_components_arr[row, col] = 255
-    mat_plot.imsave('./data/cc-top-2.jpg', two_biggest_components_arr ,cmap="gray")
+    mat_plot.imsave('./data/cc-top-2.jpg', two_biggest_components_arr, cmap="gray")
