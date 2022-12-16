@@ -1,15 +1,12 @@
-# This is a template.
-# You should modify the functions below to match
-# the signatures determined by the project specification
 from utils import *
 import numpy as np
 import copy #https://docs.python.org/3/library/copy.html
 
 def get_data(monitoring_station_files : list[str] = ["Harlington", "Marylebone Road", "N Kensington"]) -> dict[str,object]:
-    """Returns a dictionary object containing the data from the files specified in the list 'monitoring_station_files'.
+    """Returns a dictionary containing the data from the files specified in the list 'monitoring_station_files'.
     
     Args:
-        monitoring_station_files (list[str]): the monitoring stations to read the data from the files.
+        monitoring_station_files (list[str]): the monitoring stations which have data to be read from a CSV file.
 
     Returns:
         dict[str,object]: data of the pollutants at the monitoring stations in the format: \n
@@ -22,20 +19,18 @@ def get_data(monitoring_station_files : list[str] = ["Harlington", "Marylebone R
             })
             , ...
             ]
-        "station_1" : [tuples in form (date_and_hourly_value, pollutants_and_values dictionary)]
+        "station_1" : ...
     }"""
     try:
         data_dict = {}
         for station in monitoring_station_files:
             fileName = f"Pollution-London {station}.csv"
             lines = open(f"./data/{fileName}", 'r').readlines()
-            # intialises an uninitialised array of values.
-            station_list = np.empty(len(lines) - 1, dtype=object)
-            for index, line in enumerate(lines):# should use start = 
-                if index != 0:  # if it isn't the first line where the column headers are specified.
+            station_list = np.empty(len(lines) - 1, dtype=object) # Initialising the array which will contain the data from the monitoring station.
+            for index, line in enumerate(lines):
+                if index != 0:  # if it isn't the first line where the column headers are specified...
                     sections = line.rstrip().split(',')
-
-                    station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind
+                    station_list[index - 1] = (f"{sections[0]} {sections[1]}", {  # index - 1 as the first line is not actual data so each line is 1 index behind.
                         "no": sections[2],
                         "pm10": sections[3],
                         "pm25": sections[4]
@@ -45,16 +40,14 @@ def get_data(monitoring_station_files : list[str] = ["Harlington", "Marylebone R
         return data_dict
     except FileNotFoundError:
         print("File not found.")
-        return None
     except Exception as e:
         print(f"Something went wrong ({e})")
-        return None
-# Higher order function that takes in the average function specified in utils.py
-def get_daily_averages(data, average_func, monitoring_station: str, pollutant: str) -> list:
+
+def get_daily_averages(data : dict, average_func, monitoring_station: str, pollutant: str) -> list:
     """Returns a list of daily averages (mean or median) over a year (365 days).
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
+        data (dict[str, np.ndarray]): the pollution data returned from get_data()
         average_func (function): the average function to be used (meanvalue() or find_median())
         monitoring_station (str): the monitoring station to get the daily averages for
         pollutant (str): the pollutant to get the daily averages for
@@ -73,7 +66,7 @@ def get_daily_averages(data, average_func, monitoring_station: str, pollutant: s
                     value = data[monitoring_station][i * 24 + j][1][pollutant] # i * 24 + j is the index of the current pollutant value as there are 24 data entries per day.
                     if value != "No data":
                         hourly_values.append(float(value)) #Parse the value as a float (so the average function can be applied to the list) and add to the list of hourly values.
-                average_value_for_day = average_func(hourly_values)
+                average_value_for_day = average_func(hourly_values) #Apply the average function (mean or median) to the list of hourly values.
                 average_daily_values.append(average_value_for_day)
             return average_daily_values
         else:
@@ -81,25 +74,25 @@ def get_daily_averages(data, average_func, monitoring_station: str, pollutant: s
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(e)
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
-def daily_average(data, monitoring_station: str, pollutant: str) -> list:
+def daily_average(data : dict, monitoring_station: str, pollutant: str) -> list:
     """Returns a list of the daily means of a pollutant at a particular monitoring station.
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
-        monitoring_station (str): the monitoring station to get the daily means for
-        pollutant (str): the pollutant to get the daily meanss for
+        data (dict[str, np.ndarray]): the pollution data returned from get_data().
+        monitoring_station (str): the monitoring station to get the daily means for.
+        pollutant (str): the pollutant to get the daily means for.
 
     Raises:
         ValueError: invalid arguments in monitoring_station or pollutant are passed into the function.
 
     Returns:
         list: list of the mean values of a pollutant for each day."""
-    # Validate monitoring_station and pollutant.
+    
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]: #Check if monitoring_station and pollutant are valid.
             list_of_daily_means = get_daily_averages(data, meannvalue, monitoring_station, pollutant)
             return list_of_daily_means
         else:
@@ -107,13 +100,13 @@ def daily_average(data, monitoring_station: str, pollutant: str) -> list:
     except ValueError:
         print("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
-def daily_median(data, monitoring_station: str, pollutant: str) -> list:
+def daily_median(data : dict, monitoring_station: str, pollutant: str) -> list:
     """Returns a list of the daily medians of a pollutant at a particular monitoring station.
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
+        data (dict[str, np.ndarray]): the pollution data returned from get_data()
         monitoring_station (str): the monitoring station to get the daily medians for
         pollutant (str): the pollutant to get the daily medians for
 
@@ -129,25 +122,25 @@ def daily_median(data, monitoring_station: str, pollutant: str) -> list:
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
-def hourly_average(data, monitoring_station : str, pollutant : str) -> list:
+def hourly_average(data : dict, monitoring_station : str, pollutant : str) -> list:
     """Returns a list of the mean values of the pollutant for each hour in the day (24 values).
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
-        monitoring_station (str): the monitoring station to get the daily medians for
-        pollutant (str): the pollutant to get the daily medians for
+        data (dict[str, np.ndarray]): the pollution data returned from get_data().
+        monitoring_station (str): the monitoring station to get the hourly averages for.
+        pollutant (str): the pollutant to get the hourly averages for.
 
     Raises:
         ValueError: invalid arguments in monitoring_station or pollutant are passed into the function.
 
     Returns:
-        list: list of the mean values of a pollutant for each hour"""
+        list: list of the mean values of a pollutant for each hour."""
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            hour_data = [[] for i in range(24)] #using a 2d list instead of array as some entries will be "No data" so the constant shape is not needed.
+            hour_data = [[] for _ in range(24)] #Initialise a list containing 24 empty lists.
             for i in range(365):
                 for j in range(24):
                     value = data[monitoring_station][j + i * 24][1][pollutant]
@@ -157,28 +150,27 @@ def hourly_average(data, monitoring_station : str, pollutant : str) -> list:
             for i in range(24):
                 mean_hour_data.append(meannvalue(hour_data[i])) #hour_data[i] is the indivdual array of the hourly values in a day of that pollutant.
             return mean_hour_data
-
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
-def monthly_average(data, monitoring_station : str, pollutant : str) -> list :
+def monthly_average(data : dict, monitoring_station : str, pollutant : str) -> list :
     """Returns the monthly means for a pollutant at a particular pollutant at a monitoring station
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
-        monitoring_station (str): the monitoring station to get the daily medians for
-        pollutant (str): the pollutant to get the daily medians for
+        data (dict[str, np.ndarray]): the pollution data returned from get_data().
+        monitoring_station (str): the monitoring station to get the monthly averages for.
+        pollutant (str): the pollutant to get the monthly averages for.
 
     Raises:
         ValueError: invalid arguments in monitoring_station or pollutant are passed into the function.
 
     Returns:
-        list: list of the monthly means for a pollutant at a monitoring station"""
+        list: list of the monthly means for a pollutant at a monitoring station."""
 
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
@@ -203,17 +195,17 @@ def monthly_average(data, monitoring_station : str, pollutant : str) -> list :
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
-def peak_hour_date(data : dict[str, object], date : str, monitoring_station : str, pollutant : str) -> tuple:
+def peak_hour_date(data : dict, date : str, monitoring_station : str, pollutant : str) -> tuple:
     """Returns a tuple of the time and value that the max pollution occurs (for a particular pollutant).
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
-        date (str): the date to find the hour that the peak pollution occurred
-        monitoring_station (str): the monitoring station to get the daily medians for
-        pollutant (str): the pollutant to get the daily medians for
+        data (dict[str, np.ndarray]): the pollution data returned from get_data().
+        date (str): the date to find the hour that the peak pollution occurred.
+        monitoring_station (str): the monitoring station to get the hour that peak pollution occurred for a pollutant.
+        pollutant (str): the pollutant to get the hour that peak pollution occurred for that pollutant.
 
     Raises:
         ValueError: Invalid arguments passed (either as monitoring station or pollutant) or the date specified isn't present in the data from the file(s).
@@ -233,30 +225,31 @@ def peak_hour_date(data : dict[str, object], date : str, monitoring_station : st
                         raise ValueError("Date is not found in the CSV file.")
                 else:
                     found_date = True
-            #time_and_max_value = ["", -1]
             max_time = ""
-            max_value = -1
+            max_value = -1 #All pollution values are positive so this will be replaced by a true value instantly
             for i in range(24):
                 if station_data[starting_index + i][1][pollutant] != "No data":
                     value = float(station_data[starting_index + i][1][pollutant])
                     if value > max_value:
-                        max_time = station_data[starting_index + i][0][11:19]
+                        max_time = station_data[starting_index + i][0][11:19] #The time that this max pollution occurred.
                         max_value = value
             return max_time, max_value
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
+    except ValueError:
+        print("Either the date specified is not present in the data files or invalid arguments passed (as monitoring_station or pollutant).")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
     
 
 
-def count_missing_data(data : dict[str, object],  monitoring_station : str, pollutant : str) -> int:
+def count_missing_data(data : dict,  monitoring_station : str, pollutant : str) -> int:
     """Returns the number of missing data entries for a given monitoring station and pollutant.
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
-        monitoring_station (str): the monitoring station to get the daily medians for
-        pollutant (str): the pollutant to get the daily medians for
+        data (dict[str, np.ndarray]): the pollution data returned from get_data().
+        monitoring_station (str): the monitoring station to count the missing data entries for.
+        pollutant (str): the pollutant to count the missing data entries for.
 
     Raises:
         ValueError: Invalid arguments passed (either as monitoring station or pollutant)
@@ -274,23 +267,23 @@ def count_missing_data(data : dict[str, object],  monitoring_station : str, poll
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
 def fill_missing_data(data : dict[str, object], new_value : float,  monitoring_station : str, pollutant : str) -> dict[str,  object]:
-    """Returns a copy of the data with "No data" values are replaced by the parameter new_value.
+    """Returns a copy of the data with "No data" values replaced by the parameter new_value.
 
     Args:
-        data (dict[str, object]): the pollution data returned from get_data()
-        new_value (float): the value to replace empty pollutant entries
-        monitoring_station (str): the monitoring station to get the daily medians for
-        pollutant (str): the pollutant to get the daily medians for
+        data (dict[str, object]): the pollution data returned from get_data().
+        new_value (float): the value to replace empty pollutant entries.
+        monitoring_station (str): the monitoring station to fill missing data entries for.
+        pollutant (str): the pollutant to fill missing data entries for.
 
     Raises:
         ValueError: Invalid arguments passed (either as monitoring station or pollutant)
 
     Returns:
-        dict[str, object]: a copy of the data dictionary passed into the function with the empty pollutant values replaced with the new_value parameter."""
+        dict[str, np.ndarray]: a copy of the data dictionary passed into the function with the empty pollutant values replaced with the new_value parameter."""
     try:
         if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             data_copy = copy.deepcopy(data)
@@ -301,4 +294,4 @@ def fill_missing_data(data : dict[str, object], new_value : float,  monitoring_s
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
     except Exception as e:
-        print(f"Something went wrong ({e})")
+        print(f"Something went wrong, returning to the reporting module ({e}).")

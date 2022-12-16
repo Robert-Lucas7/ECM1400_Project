@@ -1,16 +1,15 @@
 # This is a template.
 # You should modify the functions below to match
 # the signatures determined by the project specification
+import json
 from reporting import *
 from monitoring import get_monitoring_sites_and_species, plot_week_of_pollutant_data_on_graph, display_most_recent_pollutant_data, comparison_of_pollutant_at_monitoring_sites, get_pollution_values_at_monitoring_site
 from intelligence import *
-import numpy as np
 import datetime
 
 def main_menu() -> None:
     """Prints the options of the different modules and takes an input to choose which module is to be accessed.
     """
-    # Validating the input
     repeat_again = True
     while repeat_again:
         # Printing the different options
@@ -20,8 +19,8 @@ def main_menu() -> None:
         print("A - Print the About text")
         print("Q - Quit the application")
         inp = input("Select a valid option.\t").upper()
-        match inp:  # Should an if elif else be used?
-            case "R":  # Pollution reporting
+        match inp:  
+            case "R": 
                 reporting_menu()
             case "I":
                 intelligence_menu()
@@ -37,13 +36,10 @@ def main_menu() -> None:
 
 
 def reporting_menu() -> None:
-    """
-    Displays the options for the reporting module
-    """
-    
-    # Validate the input
+    """Displays the options for the reporting module"""
     repeat_again = True
     while repeat_again:
+        #Prints the options of the reporting module
         print("DA - Daily average")
         print("DM - Daily median")
         print("HA - Hourly average")
@@ -52,12 +48,12 @@ def reporting_menu() -> None:
         print("CMD - Count missing data")
         print("FMD - Fill missing data")
         print("Q - Quit to the main menu")
+
         optionInp = input("Select a valid option\n").upper()
-        if optionInp == "Q": #Used if elif else as the same data is needed for all of the functions/options.
+        if optionInp == "Q": 
             repeat_again = False
             print("Returning to the main menu.")
-        elif optionInp in ["DA", "DM", "HA", "MA", "PHD", "CMD", "FMD"]:  # it is a valid input
-            # choose which monitoring station and pollutant
+        elif optionInp in ["DA", "DM", "HA", "MA", "PHD", "CMD", "FMD"]:  # If it is a valid input...
             print("Choose The Monitoring Station (H, M, N, or Q to quit):")
             print("H - Harlington")
             print("M - Marylebone Road")
@@ -86,15 +82,16 @@ def reporting_menu() -> None:
             print("Q - Quit to main menu")
             pollutant = ""
             invalidPollutant = True
-            # Could make these validation loops into a function: func validate(printMessage : str, validInputs : list)
             while invalidPollutant:
                 pollutant = input("Enter the pollutant\n").lower()
-                if pollutant in ["no", "pm10", "pm25"]:
+                if pollutant in ["no", "pm10", "pm25"]: #If user input is a valid pollutant...
                     invalidPollutant = False
                 elif pollutant == "Q":
                     return
+
             data = get_data()
-            if data:
+            if data: #If the return from get_data() is not None...
+                #If, elif statements for the options displayed in the menu.
                 if optionInp == "DA":
                     daily_averages = daily_average(data, monitoringStation, pollutant)
                     if daily_averages:
@@ -109,7 +106,7 @@ def reporting_menu() -> None:
                     hourly_averages = hourly_average(data, monitoringStation, pollutant)
                     print(f"The hourly averages of {pollutant} at {monitoringStation} are:")
                     print(f"{'Hour' : <25}{'Average value' : <25}")
-                    for index, average in enumerate(hourly_average, start= 1):
+                    for index, average in enumerate(hourly_averages, start= 1):
                         print(f"{index : 03d}:00:00 - {average : <25}")
                 elif optionInp == "MA":
                     monthly_averages = monthly_average(data, monitoringStation, pollutant)
@@ -118,13 +115,13 @@ def reporting_menu() -> None:
                     for index, average in enumerate(monthly_averages, start = 1):
                         print(f"{index : 03d}{average : <25}")
                 elif optionInp == "PHD":
-                    #Get and validate date - must be year = 2021
+                    #Get and validate date - must be in the year of 2021
                     is_valid_date = False
                     date = ""
                     while not is_valid_date:
                         date = input("Enter a valid date in 2021 in the form YYYY-MM-DD")
                         try:
-                            converted_date = datetime.datetime.strptime(date, '%Y-%m-%d')
+                            converted_date = datetime.datetime.strptime(date, '%Y-%m-%d') #Raises a ValueError if the user input cannot be converted to a datetime object in the specified form.
                             if converted_date == 2021:
                                 is_valid_date = True
                             else:
@@ -132,13 +129,14 @@ def reporting_menu() -> None:
                         except Exception:
                             print("The date must be in the form YYYY-MM-DD")
 
-                    peak_hour = peak_hour_date(data, monitoringStation, pollutant)
+                    peak_hour = peak_hour_date(data, date, monitoringStation, pollutant)
                     print(f"The peak pollution of {pollutant} occured at {peak_hour[0]} with a value of {peak_hour[1]} on the {date}")
                 elif optionInp == "CMD":
                     count = count_missing_data(data, monitoringStation, pollutant)
                     print(f"There are {count} missing data entries for {pollutant} at {monitoringStation}")
                 elif optionInp == "FMD":
                     copy_of_data = fill_missing_data(data, monitoringStation, pollutant)
+                    print(json.dumps(copy_of_data, indent = 2))
         else:
             print("Invalid input")
 
@@ -214,7 +212,7 @@ def about() -> None:
     print("ECM1400 250578")
 
 def quit() -> None:
-    """quit() will print a message saying that the program is being terminated and will not return a value."""
+    """Prints a message saying that the program is being terminated and will not return a value."""
     print("This program is terminating")
 
 
