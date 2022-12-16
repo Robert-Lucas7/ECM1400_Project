@@ -1,6 +1,3 @@
-# This is a template. 
-# You should modify the functions below to match
-# the signatures determined by the project specification
 import numpy as np
 from numpy.typing import ArrayLike
 from matplotlib import pyplot as mat_plot
@@ -26,7 +23,7 @@ class NumpyQueue():
             Exception: The queue is full so an item cannot be added.
             ValueError: The item to be added to the queue is a different type to the type specified during the intialisation of the NumPy array 'queue'."""
         try:
-            if isinstance(item, self.data_type): #if the item to be added is of the same type as the NumPy array 'queue'.
+            if isinstance(item, self.data_type): #if the item to be added is of the same type as the NumPy array 'queue'...
                 if self.IsEmpty():
                     self.top_pointer = 0
                     self.bottom_pointer = 0
@@ -84,7 +81,12 @@ def validate_filename(filename : str) -> None:
     """Validates a given filename to see if it is suitable to use.
 
     Args:
-        filename (str): The filename to validate."""
+        filename (str): The filename to validate.
+
+    Raises:
+        ValueError: Invalid characters are in the filename.
+        TypeError: The filename is of the incorrect type    
+    """
     
     for c in filename:
         if c in ['<', '>', ':', '"', "/", '\\', '|', '?', '*']:
@@ -97,12 +99,12 @@ def validate_filename(filename : str) -> None:
 def validate_colour_thresholds(lower : int, upper : int) -> None:
     """Validates the upper and lower thresholds which determine if a pixel is deemed to be a certain colour.
     Args:
-        lower (int): _description_
-        upper (int): _description_
+        lower (int): The lower threshold that determines the colour of a pixel.
+        upper (int): The upper threshold that determines the colour of a pixel.
 
     Raises:
-        ValueError: _description_
-        ValueError: _description_"""
+        ValueError: Either argument is outside the valid range (0-255).
+        TypeError: Either argument is of the incorrect type (must be an integer)."""
     if not isinstance(upper, int) or not isinstance(lower, int):
         raise TypeError("The threshold must be integers.")
     if (upper < 0 or upper > 255) or (lower < 0 or lower > 255):
@@ -135,8 +137,8 @@ def find_red_pixels(map_filename : str, upper_threshold : int = 100, lower_thres
         return red_pixels
 
     except Exception as e:
-        print(e)
-#find_red_pixels("map.png")
+        print(f"Returning to the intelligence module menu - {e}")
+
 def find_cyan_pixels(map_filename : str, upper_threshold : int = 100, lower_threshold : int = 50) -> np.ndarray:
     """Returns and saves a 2D array of where the red pixels occur in an image.
 
@@ -163,8 +165,7 @@ def find_cyan_pixels(map_filename : str, upper_threshold : int = 100, lower_thre
         mat_plot.imsave('./data/map-cyan-pixels.jpg', cyan_pixels, cmap='gray')
         return cyan_pixels
     except Exception as e:
-        print(e)
-#find_cyan_pixels('map.png')
+        print(f"Returning to the intelligence module menu - {e}")
 
 def find_pixel_neighbours(pixel_location : tuple[int, int], img_shape : tuple[int, int]) -> list[tuple[int, int]]:
     """Returns the 8-adjacent neighbours of a pixel at the location defined (pixel_location) by checking if the pixel is at an edge of the image.
@@ -217,8 +218,8 @@ def validate_2D_array(inp : any) -> None:
         inp = np.array(inp, dtype = int) #If float values are parsed in IMG, then they will be truncated.
     if not len(inp.shape) == 2: #length of the tuple must be 2 (for a 2D array)
         raise ValueError("The argument IMG must be a 2D array")
-#validate_2D_array([1,2,3,4])        
-def detect_connected_components(IMG : ArrayLike) -> np.ndarray:#2 pixels (p, q) are connected if q is in the set of N8(p)
+    
+def detect_connected_components(IMG : ArrayLike) -> np.ndarray:
     """Returns all 8-connected components in the image, defined in a 2D array, and saves the connected components and sizes to a text file.
 
     Args:
@@ -229,14 +230,15 @@ def detect_connected_components(IMG : ArrayLike) -> np.ndarray:#2 pixels (p, q) 
     try:
         # Check if IMG input is in the correct form (2D array) by seeing if it can be parsed into an ndarray.
         validate_2D_array(IMG) #raises exceptions if IMG is not in the correct form.
-        
+        if not isinstance(IMG, np.ndarray):
+            IMG = np.array(IMG, dtype = int)
         MARK = np.zeros(IMG.shape[:2], dtype=int) # The shape of MARK is the first two elements in the shape of the image as the RGB/ RGBA values are not needed.
-        queue = NumpyQueue(IMG.shape[0] * IMG.shape[1], object)
+        queue = NumpyQueue(IMG.shape[0] * IMG.shape[1], object) #Maximum size would be if the whole image is connected.
         cc_number = 1
         for row in range(IMG.shape[0]):
             for col in range(IMG.shape[1]):
                 if IMG[row, col] == 255 and MARK[row, col] == 0:
-                    MARK[row, col] = cc_number #Modification - so that you can find the size and number associated with the connected component.
+                    MARK[row, col] = cc_number # ============= Modification - so that you can find the size and number associated with the connected component. ===============
                     queue.Enqueue((row, col))
                     while not queue.IsEmpty(): 
                         first_item = queue.Dequeue()
@@ -245,7 +247,7 @@ def detect_connected_components(IMG : ArrayLike) -> np.ndarray:#2 pixels (p, q) 
                             if IMG[neighbour] == 255 and MARK[neighbour] == 0: #If both the neighbour is a pavement and has not been visited, mark it as visited and add it to the queue.
                                 MARK[neighbour] = cc_number
                                 queue.Enqueue(neighbour)
-                    cc_number += 1 #It will look for the next connected component so increment the number of the connected component by 1.
+                    cc_number += 1 # ============= Modification - It will look for the next connected component so increment the number of the connected component by 1. ==============
         connected_components = get_connected_components_from_MARK(MARK)
         save_connected_components_to_file(connected_components, 'cc-output-2a')
         return MARK
@@ -253,7 +255,7 @@ def detect_connected_components(IMG : ArrayLike) -> np.ndarray:#2 pixels (p, q) 
         if e.args[0] != "The argument IMG must be a 2D array":
             print("The argument passed in IMG only contain integers and be a 2D ArrayLike object.")
         else:
-            print(e)
+            print(f"Returning to the intelligence module menu - {e}")
 
 def get_connected_components_from_MARK(MARK : ArrayLike) -> list[tuple[int, int]]:
     """Returns the connected components from MARK as a list of tuples in the form (connected_component_number, connected_component_size).
@@ -265,6 +267,8 @@ def get_connected_components_from_MARK(MARK : ArrayLike) -> list[tuple[int, int]
         list[tuple[int, int]]: list of tuples that contain the connected component's number and size respectively."""
     try:
         validate_2D_array(MARK)
+        if not isinstance(MARK, np.ndarray):
+            MARK = np.array(MARK)
         connected_component_dict = {}
         for row in range(MARK.shape[0]):#Iterates over the MARK array and if the number (excluding 0) is present in the dictionary then increment it's value by 1, otherwise add the number as the key to the dictionary.
             for col in range(MARK.shape[1]):
@@ -278,7 +282,7 @@ def get_connected_components_from_MARK(MARK : ArrayLike) -> list[tuple[int, int]
         if e.args[0] != "The argument IMG must be a 2D array":
             print("The argument passed in IMG only contain integers and be a 2D ArrayLike object.")
         else:
-            print(e)
+            print(f"Returning to the intelligence module menu - {e}")
 
 def save_connected_components_to_file(connected_components : list[tuple[int, int]], filename : str) -> None:
     """Saves the list of tuples in the form (connected_component_number, connected_component_size) to a text file
@@ -297,7 +301,7 @@ def save_connected_components_to_file(connected_components : list[tuple[int, int
                     raise ValueError("Connected_components parameter must contain a list of 2-tuples of integers.")
             f.write(f"Total number of connected components = {len(connected_components)}")
     except Exception as e:
-        print(e)
+        print(f"Returning to the intelligence module menu - {e}")
 
 def sort_connected_components(connected_components : list[tuple[int, int]]) -> None :
     for i in range(1, len(connected_components)):
@@ -321,10 +325,10 @@ def detect_connected_components_sorted(MARK : ArrayLike ) -> None: #Finds connec
     """
     
     connected_components = get_connected_components_from_MARK(MARK)
-    sort_connected_components(connected_components) #As connected_components is a list, it is immutable so it is effectively passed by reference. Hence, it's value will be changed from within the function.
+    sort_connected_components(connected_components) #As connected_components is a list, it is immutable and it's value will be changed from within the function.
     save_connected_components_to_file(connected_components, 'cc-output-2b')
     two_biggest_components = [x[0] for x in connected_components[:2]]
-    two_biggest_components_arr = np.full(MARK.shape, 0)#np.zeros((MARK.shape[0], MARK.shape[1]))
+    two_biggest_components_arr = np.full(MARK.shape, 0)
     for row in range(MARK.shape[0]):
         for col in range(MARK.shape[1]):
             if MARK[row, col] in two_biggest_components:
