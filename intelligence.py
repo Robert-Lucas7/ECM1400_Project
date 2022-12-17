@@ -153,8 +153,8 @@ def find_cyan_pixels(map_filename : str, upper_threshold : int = 100, lower_thre
         validate_filename(map_filename)
         validate_colour_thresholds(lower_threshold, upper_threshold)
 
-        rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255 # returns rgba [red, green, blue, aplha]
-        cyan_pixels = np.zeros(rgb_img.shape[:2])# using 3 as saving as a jpg not png so doesn't need the alpha.
+        rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255
+        cyan_pixels = np.zeros(rgb_img.shape[:2])
         for row in range(rgb_img.shape[0]):
             for col in range(rgb_img.shape[1]):
                 red =rgb_img[row,col][0]
@@ -235,11 +235,14 @@ def detect_connected_components(IMG : ArrayLike) -> np.ndarray:
         MARK = np.zeros(IMG.shape[:2], dtype=int) # The shape of MARK is the first two elements in the shape of the image as the RGB/ RGBA values are not needed.
         queue = NumpyQueue(IMG.shape[0] * IMG.shape[1], object) #Maximum size would be if the whole image is connected.
         cc_number = 1
+        connected_components = []
+
         for row in range(IMG.shape[0]):
             for col in range(IMG.shape[1]):
                 if IMG[row, col] == 255 and MARK[row, col] == 0:
-                    MARK[row, col] = cc_number # ============= Modification - so that you can find the size and number associated with the connected component. ===============
+                    MARK[row, col] = cc_number #  Modification - so that you can find the size and number associated with the connected component. 
                     queue.Enqueue((row, col))
+                    cc_size = 1 # Modification - so you can find the size of the connected components
                     while not queue.IsEmpty(): 
                         first_item = queue.Dequeue()
                         eight_neighbours = find_pixel_neighbours(first_item, IMG.shape)
@@ -247,8 +250,9 @@ def detect_connected_components(IMG : ArrayLike) -> np.ndarray:
                             if IMG[neighbour] == 255 and MARK[neighbour] == 0: #If both the neighbour is a pavement and has not been visited, mark it as visited and add it to the queue.
                                 MARK[neighbour] = cc_number
                                 queue.Enqueue(neighbour)
-                    cc_number += 1 # ============= Modification - It will look for the next connected component so increment the number of the connected component by 1. ==============
-        connected_components = get_connected_components_from_MARK(MARK)
+                        cc_size += 1 # Modification
+                    connected_components.append((cc_number, cc_size)) # Modification
+                    cc_number += 1 # Modification - It will look for the next connected component so increment the number of the connected component by 1. ==============
         save_connected_components_to_file(connected_components, 'cc-output-2a')
         return MARK
     except ValueError as e:
@@ -317,7 +321,7 @@ def sort_connected_components(connected_components : list[tuple[int, int]]) -> N
             else:
                 found_location = True
 
-def detect_connected_components_sorted(MARK : ArrayLike ) -> None: #Finds connected components from 2D array MARK and sorts them in decreasing order.
+def detect_connected_components_sorted(MARK : ArrayLike ) -> None:
     """Finds and sorts the connected components in descending order from the array MARK. These are written to a file ('cc-output-2b.txt') and the two largest connected components are saved as an image ('cc-top-2.jpg').
     
     Args:
