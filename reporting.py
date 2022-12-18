@@ -58,7 +58,7 @@ def get_daily_averages(data : dict, average_func, monitoring_station: str, pollu
     Returns:
         list: list of daily averages for the particular monitoring station and pollutant"""
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             average_daily_values = []
             for i in range(365):
                 hourly_values = []
@@ -66,7 +66,10 @@ def get_daily_averages(data : dict, average_func, monitoring_station: str, pollu
                     value = data[monitoring_station][i * 24 + j][1][pollutant] # i * 24 + j is the index of the current pollutant value as there are 24 data entries per day.
                     if value != "No data":
                         hourly_values.append(float(value)) #Parse the value as a float (so the average function can be applied to the list) and add to the list of hourly values.
-                average_value_for_day = average_func(hourly_values) #Apply the average function (mean or median) to the list of hourly values.
+                if len(hourly_values) != 0:
+                    average_value_for_day = average_func(hourly_values) #Apply the average function (mean or median) to the list of hourly values.
+                else:
+                    average_value_for_day = "N/A"
                 average_daily_values.append(average_value_for_day)
             return average_daily_values
         else:
@@ -74,7 +77,7 @@ def get_daily_averages(data : dict, average_func, monitoring_station: str, pollu
     except IndexError:
         print("The data does not contain the correct amount of data (24 values for each day in a year (365 days))")
     except Exception as e:
-        print(f"Something went wrong, returning to the reporting menu ({e}).")
+       print(f"Something went wrong, returning to the reporting menu ({e}).")
 
 
 def daily_average(data : dict, monitoring_station: str, pollutant: str) -> list:
@@ -92,7 +95,7 @@ def daily_average(data : dict, monitoring_station: str, pollutant: str) -> list:
         list: list of the mean values of a pollutant for each day."""
     
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]: #Check if monitoring_station and pollutant are valid.
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]: #Check if monitoring_station and pollutant are valid.
             list_of_daily_means = get_daily_averages(data, meannvalue, monitoring_station, pollutant)
             return list_of_daily_means
         else:
@@ -116,7 +119,7 @@ def daily_median(data : dict, monitoring_station: str, pollutant: str) -> list:
     Returns:
         list:  list of the median values of a pollutant for each day"""
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             list_of_daily_medians = get_daily_averages(data, find_median, monitoring_station, pollutant)
             return list_of_daily_medians
         else:
@@ -139,7 +142,7 @@ def hourly_average(data : dict, monitoring_station : str, pollutant : str) -> li
     Returns:
         list: list of the mean values of a pollutant for each hour."""
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             hour_data = [[] for _ in range(24)] #Initialise a list containing 24 empty lists.
             for i in range(365):
                 for j in range(24):
@@ -173,8 +176,8 @@ def monthly_average(data : dict, monitoring_station : str, pollutant : str) -> l
         list: list of the monthly means for a pollutant at a monitoring station."""
 
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
-            monthly_average_data = np.empty(12)
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+            monthly_average_data = []
             station_data= data[monitoring_station]
             index = 0
             for i in range(12):
@@ -188,7 +191,10 @@ def monthly_average(data : dict, monitoring_station : str, pollutant : str) -> l
                     if value != "No data":
                         normal_monthly_data.append(float(value))
                     index += 1
-                monthly_average_data[i] = meannvalue(normal_monthly_data)
+                if len(normal_monthly_data) != 0:
+                    monthly_average_data.append(meannvalue(normal_monthly_data))
+                else:
+                    monthly_average_data.append('N/A')
             return monthly_average_data
         else:
             raise ValueError("Invalid arguments passed (either as monitoring station or pollutant)")
@@ -213,14 +219,13 @@ def peak_hour_date(data : dict, date : str, monitoring_station : str, pollutant 
     Returns:
         tuple: a tuple of the time and value of when the maximum pollution occurred"""
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             found_date = False
             starting_index = 0
             station_data = data[monitoring_station]
             while not found_date:
                 if station_data[starting_index][0][:10] != date :
                     starting_index += 1
-                    print(starting_index, )
                     if starting_index >= len(station_data) -1:
                         raise ValueError("Date is not found in the CSV file.")
                 else:
@@ -257,7 +262,7 @@ def count_missing_data(data : dict,  monitoring_station : str, pollutant : str) 
     Returns:
         int: the number of missing data entries for that pollutant at the monitoring station"""
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             num_missing_data = 0
             for i in range(len(data[monitoring_station])):
                 value = data[monitoring_station][i][1][pollutant]
@@ -285,7 +290,7 @@ def fill_missing_data(data : dict[str, object], new_value : float,  monitoring_s
     Returns:
         dict[str, np.ndarray]: a copy of the data dictionary passed into the function with the empty pollutant values replaced with the new_value parameter."""
     try:
-        if monitoring_station in ["Harlington", "Marlyebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
+        if monitoring_station in ["Harlington", "Marylebone Road", "N Kensington"] and pollutant in ["no", "pm10", "pm25"]:
             data_copy = copy.deepcopy(data)
             for _, pollution in data_copy[monitoring_station]: # iterates over the tuples and only the dictionary containing the pollutant values is of importance.
                 if pollution[pollutant] == "No data":

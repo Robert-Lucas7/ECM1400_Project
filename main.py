@@ -86,7 +86,7 @@ def reporting_menu() -> None:
                 pollutant = input("Enter the pollutant\n").lower()
                 if pollutant in ["no", "pm10", "pm25"]: #If user input is a valid pollutant...
                     invalidPollutant = False
-                elif pollutant == "Q":
+                elif pollutant == "q":
                     return
 
             data = get_data()
@@ -95,34 +95,34 @@ def reporting_menu() -> None:
                 if optionInp == "DA":
                     daily_averages = daily_average(data, monitoringStation, pollutant)
                     if daily_averages:
-                        print(f"The daily averages for {pollutant} at {monitoringStation}:")
-                        print(f"{','.join(daily_averages)}")
+                        print(f"The daily averages for {pollutant.upper()} at {monitoringStation}:")
+                        print(f"{','.join([f'{average : .3g}' if type(average) == float else average for average in daily_averages])}")
                 elif optionInp == "DM":
                     daily_medians = daily_median(data, monitoringStation, pollutant)
                     if daily_medians:
-                        print(f"The daily medians for {pollutant} at {monitoringStation}:")
-                        print(f"{','.join(daily_medians)}")
+                        print(f"The daily medians for {pollutant.upper()} at {monitoringStation}:")
+                        print(f"{','.join(f'{median : .3g}' if type(median) == float else median for median in daily_medians)}")
                 elif optionInp == "HA":
                     hourly_averages = hourly_average(data, monitoringStation, pollutant)
-                    print(f"The hourly averages of {pollutant} at {monitoringStation} are:")
+                    print(f"The hourly averages of {pollutant.upper()} at {monitoringStation} are:")
                     print(f"{'Hour' : <25}{'Average value' : <25}")
                     for index, average in enumerate(hourly_averages, start= 1):
-                        print(f"{index : 03d}:00:00 - {average : <25}")
+                        print(f"{f'{index : 03d}:00:00' :<25}{f'{average : .3g}' : <25}")
                 elif optionInp == "MA":
                     monthly_averages = monthly_average(data, monitoringStation, pollutant)
-                    print(f"The monthly averages of {pollutant} at {monitoringStation} are:")
+                    print(f"The monthly averages of {pollutant.upper()} at {monitoringStation} are:")
                     print(f"{'Month' : <25}{'Average Value' : <25}")
                     for index, average in enumerate(monthly_averages, start = 1):
-                        print(f"{index : 03d}{average : <25}")
+                        print(f"{f'{index : 03d}' : <25}{f'{average : .3g}'  if type(average) == float else average : <25}")
                 elif optionInp == "PHD":
                     #Get and validate date - must be in the year of 2021
                     is_valid_date = False
                     date = ""
                     while not is_valid_date:
-                        date = input("Enter a valid date in 2021 in the form YYYY-MM-DD")
+                        date = input("Enter a valid date in 2021 in the form YYYY-MM-DD. \t")
                         try:
                             converted_date = datetime.datetime.strptime(date, '%Y-%m-%d') #Raises a ValueError if the user input cannot be converted to a datetime object in the specified form.
-                            if converted_date == 2021:
+                            if converted_date.year == 2021:
                                 is_valid_date = True
                             else:
                                 print("The date must be in the year 2021")
@@ -130,13 +130,23 @@ def reporting_menu() -> None:
                             print("The date must be in the form YYYY-MM-DD")
 
                     peak_hour = peak_hour_date(data, date, monitoringStation, pollutant)
-                    print(f"The peak pollution of {pollutant} occured at {peak_hour[0]} with a value of {peak_hour[1]} on the {date}")
+                    print(f"The peak pollution of {pollutant.upper()} occured at {peak_hour[0]} with a value of {peak_hour[1]} on the {date}")
                 elif optionInp == "CMD":
                     count = count_missing_data(data, monitoringStation, pollutant)
-                    print(f"There are {count} missing data entries for {pollutant} at {monitoringStation}")
+                    print(f"There are {count} missing data entries for {pollutant.upper()} at {monitoringStation}")
                 elif optionInp == "FMD":
-                    copy_of_data = fill_missing_data(data, monitoringStation, pollutant)
-                    print(json.dumps(copy_of_data, indent = 2))
+                    new_value = 0
+                    is_valid_input = False
+                    while not is_valid_input:
+                        new_value = input("Enter the value to replace missing data entries. \t")
+                        try:
+                            new_value = float(new_value) # Tries to parse new_value as a float, a value error will be raised if it cannot be parsed to a float.
+                            is_valid_input = True
+                        except:
+                            print(f"'{new_value}' is not a valid input (must be an integer or float)")
+                    copy_of_data = fill_missing_data(data, new_value, monitoringStation, pollutant)
+                    print(f"Original data has {count_missing_data(data, monitoringStation, pollutant)} missing data entries")
+                    print(f"Copy of data has {count_missing_data(copy_of_data, monitoringStation, pollutant)} missing data entries")
         else:
             print("Invalid input")
 
@@ -170,6 +180,7 @@ def monitoring_menu():
 def intelligence_menu() -> None:
     """Displays the options for the intelligence module."""
     repeat_again = True
+    MARK = None
     while repeat_again:
         print("R - Find red pixels in the image specified")
         print("C - Find cyan pixels in the image specified")
@@ -177,7 +188,6 @@ def intelligence_menu() -> None:
         print("S - Detect sorted connected components")
         print("Q - Quit to main menu")
         inp = input("Enter option: \t").upper()
-        MARK = None
         match inp:
             case "R":
                 find_red_pixels('map.png')
@@ -197,7 +207,7 @@ def intelligence_menu() -> None:
                 else:
                     MARK = detect_connected_components(find_cyan_pixels('map.png'))
             case "S":
-                if MARK: #If mark is not None...
+                if isinstance(MARK, np.ndarray): #If mark is not None...
                     detect_connected_components_sorted(MARK)
                 else:
                     print("Please choose the option '(D)etect connected components' first then try again")

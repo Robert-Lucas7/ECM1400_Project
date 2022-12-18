@@ -25,15 +25,12 @@ def maxvalue(values: list) -> int:
     """
     # Check if the list is empty
     if len(values) != 0:
-        maxVal = None
+        maxVal = 0
         maxValIndex = 0
         for i in range(0, len(values)):
             # Validate element data type
             if type(values[i]) in [int, float]:
-                    if not maxVal: #If max value is None...
-                        maxVal = values[i]
-                        maxValIndex = i
-                    elif values[i] > maxVal:
+                    if values[i] > maxVal or i == 0:
                         maxVal = values[i]
                         maxValIndex = i
             else:
@@ -72,7 +69,10 @@ def meannvalue(values):
     Args:
         values : list of int or float"""
     total = sumvalues(values) #Suitable exceptions will be raised here if values is in the incorrect form.
-    return total / len(values)
+    if len(values) == 0:
+        raise ValueError("The list of values is empty")
+    else:
+        return total / len(values)
 
 
 def countvalue(values, x):
@@ -96,11 +96,11 @@ def find_median(values: list):
     sorted_values = insertion_sort(values)
     # even number of elements in the list. e.g. [1,2,3,4,5,6]
     if len(sorted_values) % 2 == 0:
-        right_most_middle_element = len(sorted_values) / 2
+        right_most_middle_element = len(sorted_values) // 2
         return (sorted_values[right_most_middle_element] + sorted_values[right_most_middle_element - 1]) / 2
     else:  # odd number of elements in the list. e.g. [1,2,3,4,5]
         # the index will always be an integer as 1 less of an odd number is even.
-        return sorted_values[(len(sorted_values) - 1)/2]
+        return sorted_values[(len(sorted_values) - 1)//2]
 
 
 def insertion_sort(values: list) -> list:

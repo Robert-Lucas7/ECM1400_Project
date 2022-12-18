@@ -124,7 +124,7 @@ def find_red_pixels(map_filename : str, upper_threshold : int = 100, lower_thres
         validate_filename(map_filename)
         validate_colour_thresholds(lower_threshold, upper_threshold)
         
-        rgb_img = mat_plot.imread(f'./data/{map_filename}.jpg') * 255 # Scales the image returned to have the colour values range from 0 to 255 (to avoid rounding errors)
+        rgb_img = mat_plot.imread(f'./data/{map_filename}') * 255 # Scales the image returned to have the colour values range from 0 to 255 (to avoid rounding errors)
         red_pixels = np.zeros(rgb_img.shape[:2])
         for row in range(rgb_img.shape[0]): #iterating over every element in the 2D array rgb_img
             for col in range(rgb_img.shape[1]):
@@ -242,7 +242,7 @@ def detect_connected_components(IMG : ArrayLike) -> np.ndarray:
                 if IMG[row, col] == 255 and MARK[row, col] == 0:
                     MARK[row, col] = cc_number #  Modification - so that you can find the size and number associated with the connected component. 
                     queue.Enqueue((row, col))
-                    cc_size = 1 # Modification - so you can find the size of the connected components
+                    cc_size = 0 # Modification - so you can find the size of the connected components
                     while not queue.IsEmpty(): 
                         first_item = queue.Dequeue()
                         eight_neighbours = find_pixel_neighbours(first_item, IMG.shape)
@@ -299,7 +299,7 @@ def save_connected_components_to_file(connected_components : list[tuple[int, int
         validate_filename(filename)
         with open(f'./data/{filename}.txt', 'w') as f:
             for number, size in connected_components: #If connected components is not in the correct form, an exception will be raised.
-                if isinstance(number, int) and isinstance(size, int):
+                if np.issubdtype(type(number), int) and np.issubdtype(type(size), int): #As after get_connected_components_from_MARK() number is of type numpy.int32.
                     f.write(f"Connected Component {number}, number of pixels = {size}\n")
                 else:
                     raise ValueError("Connected_components parameter must contain a list of 2-tuples of integers.")
@@ -327,7 +327,6 @@ def detect_connected_components_sorted(MARK : ArrayLike ) -> None:
     Args:
         MARK (ArrayLike): An array that stores the information for the connected components in the image.
     """
-    
     connected_components = get_connected_components_from_MARK(MARK)
     sort_connected_components(connected_components) #As connected_components is a list, it is immutable and it's value will be changed from within the function.
     save_connected_components_to_file(connected_components, 'cc-output-2b')
